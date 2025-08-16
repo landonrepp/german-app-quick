@@ -1,53 +1,55 @@
 "use client";
+import React from 'react';
 
-import React, { ReactNode, useState } from "react";
+export default function FileUploader() {
+  const [content, setContent] = React.useState<string>("");
+  const [error, setError] = React.useState<string>("");
 
-export default function FileUploader({ children }: { children: ReactNode }) {
-  const [dragging, setDragging] = useState(false);
+  const onInputChange = async (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const files = evt.target.files ? Array.from(evt.target.files) : [];
+    if (!files.length) return;
 
-  const handleDrag = (evt: React.DragEvent<HTMLDivElement>) => {
-    evt.preventDefault(); // allow drop
-    evt.stopPropagation();
-    console.log("dragging");
-    setDragging(true);
-  };
+    const file = files[0];
+    // Only allow text/plain
+    if (file.type !== "text/plain") {
+      setContent("");
+      setError("Only text files are allowed");
+      return;
+    }
 
-  const handleDrop = (evt: React.DragEvent<HTMLDivElement>) => {
-    evt.preventDefault();
-    evt.stopPropagation();
-    console.log("dropped");
-    setDragging(false);
-  };
-
-  const handleDragLeave = (evt: React.DragEvent<HTMLDivElement>) => {
-    evt.stopPropagation();
-    evt.preventDefault();
-
-    console.log("exit");
-    setDragging(false);
+    try {
+      // Use File.text() when available; fallback for environments without it
+      const text = typeof (file as any).text === 'function'
+        ? await (file as any).text()
+        : await new Response(file).text();
+      setError("");
+      setContent(text);
+    } catch (e) {
+      setContent("");
+      setError("Failed to read file");
+    }
   };
 
   return (
-    <div
-      className="p-0 m-0 h-full w-full"
-      onDragLeave={handleDragLeave}
-      onDragEnter={handleDrag}
-      onDragOver={e => e.preventDefault()}
-    >
-      {dragging ? (
-        <>
-          <div
-            className="pointer-events-none absolute opacity-10 bg-white h-full w-full flex flex-row justify-center"
-          >
-            <div className="flex flex-col justify-center">
-              <div className="h-fit">dragging</div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <></>
+    <form>
+      <input
+        onChange={onInputChange}
+        type="file"
+        id="fileUpload"
+        className="hidden"
+        accept="text/plain"
+      />
+      <label htmlFor="fileUpload" className="border-2 p-2 rounded-md">
+        Choose a file to sentence mine
+      </label>
+      {error && (
+        <p role="alert" className="mt-2 text-red-600">
+          {error}
+        </p>
       )}
-      <div className="">{children}</div>
-    </div>
-  );
+      {content && (
+        <pre className="mt-2 whitespace-pre-wrap">{content}</pre>
+      )}
+    </form>
+  )
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,11 +25,34 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`bg-gray-900 w-screen h-screen`}>
+        <div className="flex flex-row h-dvh">
+          <div className="w-40 bg-black py-4">
+            <NavItem link="/">
+              Import Files
+            </NavItem>
+            <NavItem link="/mine">
+              Mine Sentences
+            </NavItem>
+            <NavItem link="/export">
+              Export to Anki
+            </NavItem>
+          </div>
+          <div>{children}</div>
+        </div>
       </body>
     </html>
+  );
+}
+
+function NavItem({ children, link }: { children?: React.ReactNode, link: string }) {
+  return (
+    <Link
+      href={link}
+      className="h-10 flex flex-col justify-center p-2 cursor-pointer
+              bg-gray-700 rounded-md m-2"
+    >
+      {children}
+    </Link>
   );
 }
