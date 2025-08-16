@@ -11,11 +11,13 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@protontech/jsmimeparser": "^3.0.2",
     "axios": "^1.11.0",
     "better-sqlite3": "^12.2.0",
     "next": "15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "lang-detection": "file:lang-detection/pkg",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
   },

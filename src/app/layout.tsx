@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`bg-gray-900 w-screen h-screen`}>
         <div className="flex flex-row h-dvh">
-          <div className="w-40 bg-black py-4">
+          <div className="bg-black py-4">
             <NavItem link="/">
               Import Files
             </NavItem>
@@ -50,7 +50,7 @@ function NavItem({ children, link }: { children?: React.ReactNode, link: string 
     <Link
       href={link}
       className="h-10 flex flex-col justify-center p-2 cursor-pointer
-              bg-gray-700 rounded-md m-2"
+              bg-gray-700 rounded-md m-2 text-nowrap"
     >
       {children}
     </Link>
