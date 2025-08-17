@@ -31,21 +31,121 @@ import fs from 'fs';
     });
 })();
 
-export const importSentences = async ({content, sentences, fileName}: {content: string, sentences: string[], fileName: string}) => {
+export type ImportSentencesResult =
+  | {
+      ok: true;
+      documentId: number;
+      insertedSentences: number;
+    }
+  | {
+      ok: false;
+      code:
+        | 'NO_SENTENCES'
+        | 'DOCUMENT_ALREADY_EXISTS'
+        | 'DOCUMENT_INSERT_FAILED'
+        | 'SENTENCE_INSERT_FAILED'
+        | 'DB_ERROR';
+      message: string;
+      details?: string;
+    };
+
+export const importSentences = async ({
+  content,
+  sentences,
+  fileName,
+}: {
+  content: string;
+  sentences: string[];
+  fileName: string;
+}): Promise<ImportSentencesResult> => {
+  if (!Array.isArray(sentences) || sentences.length === 0) {
+    return {
+      ok: false,
+      code: 'NO_SENTENCES',
+      message: 'No German sentences were detected in the file.',
+    };
+  }
+
+  try {
     const documentInsert = database.prepare(`
         INSERT INTO documents (title, content) VALUES (?, ?)
     `);
-    const documentInsertResult = documentInsert.run(fileName, content);
-    if (!documentInsertResult) throw new Error('Failed to insert document');
-    const documentId = documentInsertResult.lastInsertRowid;
-
     const sentenceInsert = database.prepare(`
         INSERT INTO sentences (document_id, content) VALUES (?, ?)
     `);
-    sentences.forEach(sentence => {
-        const sentenceInsertResult = sentenceInsert.run(documentId, sentence);
-        if (!sentenceInsertResult) throw new Error('Failed to insert sentence');
+
+    const tx = database.transaction(() => {
+      const docRes = documentInsert.run(fileName, content);
+      if (!docRes) {
+        throw Object.assign(new Error('Document insert returned no result'), {
+          _reason: 'DOCUMENT_INSERT_FAILED',
+        });
+      }
+      const documentId = Number(docRes.lastInsertRowid);
+
+      let count = 0;
+      for (const s of sentences) {
+        const res = sentenceInsert.run(documentId, s);
+        if (!res) {
+          throw Object.assign(new Error('Sentence insert returned no result'), {
+            _reason: 'SENTENCE_INSERT_FAILED',
+          });
+        }
+        count += 1;
+      }
+      return { documentId, count };
     });
-    console.log(`inserted ${sentences.length} sentences for document ${fileName}`);
-}
+
+    const { documentId, count } = tx();
+    console.log(`inserted ${count} sentences for document ${fileName}`);
+
+    return { ok: true, documentId, insertedSentences: count };
+  } catch (e: any) {
+    // Map better-sqlite3/SQLite errors to descriptive results
+    const code = e?.code as string | undefined;
+    const msg = e?.message as string | undefined;
+    const reason = e?._reason as string | undefined;
+
+    // Broaden detection for UNIQUE constraint on documents.title
+    const isUniqueTitleViolation =
+      (code?.startsWith('SQLITE_CONSTRAINT') ?? false) &&
+      (msg?.includes('UNIQUE constraint failed: documents.title') ||
+        msg?.includes('documents.title'));
+
+    if (isUniqueTitleViolation) {
+      return {
+        ok: false,
+        code: 'DOCUMENT_ALREADY_EXISTS',
+        message:
+          'A document with this file name already exists. Rename the file and try again.',
+        details: msg,
+      };
+    }
+
+    if (reason === 'DOCUMENT_INSERT_FAILED') {
+      return {
+        ok: false,
+        code: 'DOCUMENT_INSERT_FAILED',
+        message: 'Failed to create a document record in the database.',
+        details: msg,
+      };
+    }
+
+    if (reason === 'SENTENCE_INSERT_FAILED') {
+      return {
+        ok: false,
+        code: 'SENTENCE_INSERT_FAILED',
+        message: 'Failed to insert one or more sentences into the database.',
+        details: msg,
+      };
+    }
+
+    return {
+      ok: false,
+      code: 'DB_ERROR',
+      message: 'An unexpected database error occurred while importing sentences.',
+      details: msg,
+    };
+  }
+};
 
