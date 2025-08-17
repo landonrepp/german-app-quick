@@ -38,7 +38,9 @@ export default function RootLayout({
               Export to Anki
             </NavItem>
           </div>
-          <div>{children}</div>
+          <div className="w-full m-2">
+            {children}
+          </div>
         </div>
       </body>
     </html>
@@ -49,7 +51,7 @@ function NavItem({ children, link }: { children?: React.ReactNode, link: string 
   return (
     <Link
       href={link}
-      className="h-10 flex flex-col justify-center p-2 cursor-pointer
+      className="h-10 flex flex-col p-2 cursor-pointer
               bg-gray-700 rounded-md m-2 text-nowrap"
     >
       {children}

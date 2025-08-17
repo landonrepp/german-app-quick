@@ -115,7 +115,7 @@ export default function FileUploader() {
         accept="text/plain"
         disabled={importResult?.result === "LOADING"}
       />
-      <label htmlFor="fileUpload" className="border-2 p-2 rounded-md">
+      <label htmlFor="fileUpload" className="border-2 p-2 rounded-md cursor-pointer">
         Choose a file to sentence mine
       </label>
 
