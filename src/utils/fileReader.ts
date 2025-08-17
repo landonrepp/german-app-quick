@@ -6,10 +6,16 @@ type LanguageResults = "German" | "English" | "Unknown";
 
 const SUPPORTED_FILE_TYPES = ["txt"];
 
-export function getGermanSentences(fileBuffer: string, fileName: string): string[] {
+export function getGermanSentences({
+  fileContent: fileBuffer,
+  fileName,
+}: {
+  fileContent: string;
+  fileName: string;
+}): string[] {
   const sentences = getSentences(fileBuffer, fileName);
   const languageResults = detect_languages(sentences) as LanguageResults[];
-  
+
   return sentences.filter((_, index) => languageResults[index] === "German");
 }
 

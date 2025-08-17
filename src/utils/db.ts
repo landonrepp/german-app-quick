@@ -1,10 +1,10 @@
+'use server';
+
 import Database from 'better-sqlite3';
 const database = new Database('./db.sqlite', { verbose: console.log });
 import fs from 'fs';
 
-const init  = async () => {
-    'use server';
-
+(async () => {
     database.exec(`
         CREATE TABLE IF NOT EXISTS migrations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,6 +29,23 @@ const init  = async () => {
         // Execute the migration and record it in a single transaction
         applyMigration(file, sql);
     });
+})();
+
+export const importSentences = async ({content, sentences, fileName}: {content: string, sentences: string[], fileName: string}) => {
+    const documentInsert = database.prepare(`
+        INSERT INTO documents (title, content) VALUES (?, ?)
+    `);
+    const documentInsertResult = documentInsert.run(fileName, content);
+    if (!documentInsertResult) throw new Error('Failed to insert document');
+    const documentId = documentInsertResult.lastInsertRowid;
+
+    const sentenceInsert = database.prepare(`
+        INSERT INTO sentences (document_id, content) VALUES (?, ?)
+    `);
+    sentences.forEach(sentence => {
+        const sentenceInsertResult = sentenceInsert.run(documentId, sentence);
+        if (!sentenceInsertResult) throw new Error('Failed to insert sentence');
+    });
+    console.log(`inserted ${sentences.length} sentences for document ${fileName}`);
 }
 
-await init();

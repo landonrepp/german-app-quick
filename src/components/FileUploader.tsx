@@ -1,34 +1,64 @@
 "use client";
-import React from 'react';
+import { importSentences } from "@/utils/db";
+import { getGermanSentences } from "@/utils/fileReader";
+import React, { useEffect } from "react";
+
+type FileUploadResult =
+    {
+      result: "SUCCESS";
+    }
+  | {
+      result: "ERROR";
+      error: string;
+    };
 
 export default function FileUploader() {
-  const [content, setContent] = React.useState<string>("");
-  const [error, setError] = React.useState<string>("");
+  const [importResult, setImportResult] =
+    React.useState<FileUploadResult | null>(null);
 
   const onInputChange = async (evt: React.ChangeEvent<HTMLInputElement>) => {
-    const files = evt.target.files ? Array.from(evt.target.files) : [];
-    if (!files.length) return;
+    (async () => {
+      const files = evt.target.files ? Array.from(evt.target.files) : [];
+      if (!files.length) return;
 
-    const file = files[0];
-    // Only allow text/plain
-    if (file.type !== "text/plain") {
-      setContent("");
-      setError("Only text files are allowed");
-      return;
-    }
+      const file = files[0];
+      // Only allow text/plain
+      if (file.type !== "text/plain") {
+        setError("Only text files are allowed");
+        return;
+      }
 
-    try {
-      // Use File.text() when available; fallback for environments without it
-      const text = typeof (file as any).text === 'function'
-        ? await (file as any).text()
-        : await new Response(file).text();
-      setError("");
-      setContent(text);
-    } catch (e) {
-      setContent("");
-      setError("Failed to read file");
-    }
+      try {
+        // Use File.text() when available; fallback for environments without it
+        const text =
+          typeof (file as any).text === "function"
+            ? await(file as any).text()
+            : await new Response(file).text();
+        setImportResult(text);
+
+        const sentences = getGermanSentences({
+          fileContent: text,
+          fileName: file.name,
+        });
+
+        importSentences({
+          fileName: file.name,
+          content: text,
+          sentences,
+        });
+      } catch (e) {
+        setImportResult("ERROR");
+        setError("Failed to read file");
+      }
+    })();
   };
+
+  useEffect(() => {
+    return () => {
+      setImportResult(null);
+      setError("");
+    };
+  }, []);
 
   return (
     <form>
@@ -47,9 +77,9 @@ export default function FileUploader() {
           {error}
         </p>
       )}
-      {content && (
-        <pre className="mt-2 whitespace-pre-wrap">{content}</pre>
+      {importResult && (
+        <pre className="mt-2 whitespace-pre-wrap">{importResult}</pre>
       )}
     </form>
-  )
+  );
 }
