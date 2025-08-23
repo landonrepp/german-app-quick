@@ -39,9 +39,9 @@ export default function RootLayout({
             </NavItem>
           </div>
           <div className="w-full m-2">
-            {children}
+              {children}
+            </div>
           </div>
-        </div>
       </body>
     </html>
   );

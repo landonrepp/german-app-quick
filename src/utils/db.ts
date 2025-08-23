@@ -1,8 +1,12 @@
 'use server';
 
 import Database from 'better-sqlite3';
-const database = new Database('./db.sqlite', { verbose: console.log });
 import fs from 'fs';
+
+
+const database = new Database('./db.sqlite', { verbose: console.log });
+
+export const getDatabase = async () => database;
 
 (async () => {
     database.exec(`
@@ -74,6 +78,10 @@ export const importSentences = async ({
         INSERT INTO sentences (document_id, content) VALUES (?, ?)
     `);
 
+    const wordInsert = database.prepare(`
+        INSERT INTO words_in_sentences (sentence_id, word) VALUES (?, ?)
+      `);
+
     const tx = database.transaction(() => {
       const docRes = documentInsert.run(fileName, content);
       if (!docRes) {
@@ -92,6 +100,15 @@ export const importSentences = async ({
           });
         }
         count += 1;
+
+        const sentenceId = Number(res.lastInsertRowid);
+
+        for(let word of s.split(' ')){
+          word.replace(',', '')
+            .replace('.','')
+            .replace(';',''); //TODO: remove all punctuation here
+          wordInsert.run(sentenceId, word);
+        }
       }
       return { documentId, count };
     });
@@ -101,6 +118,7 @@ export const importSentences = async ({
 
     return { ok: true, documentId, insertedSentences: count };
   } catch (e: any) {
+    console.log(e);
     // Map better-sqlite3/SQLite errors to descriptive results
     const code = e?.code as string | undefined;
     const msg = e?.message as string | undefined;

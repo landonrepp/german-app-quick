@@ -1,7 +1,8 @@
-"use client";
+"use server"
 
 import { AddButton, IKnowThisButton } from "@/components/Buttons";
-import { useEffect, useState } from "react";
+import { SentenceListItem } from "@/components/SentenceListItem";
+import {getSentences} from '@/utils/miningDao';
 
 type PageState =
   | {
@@ -16,18 +17,10 @@ type PageState =
       message: string;
     };
 
-export default function Page() {
-  const [pageState, setPageState] = useState<PageState>({ state: "LOADING" });
+export default async function Page() {
 
-  useEffect(() => {
-    // TODO: add db call here
-    setTimeout(() => {
-      setPageState({
-        state: "READY",
-        sentences: ["Ich liebe Programmieren.", "React ist großartig."],
-      });
-    }, 1000);
-  }, []);
+  // Simulate a READY state for demonstration
+  const sentences = await getSentences();
 
   return (
     <div className="flex flex-row justify-center w-full">
@@ -37,31 +30,21 @@ export default function Page() {
           <thead>
             <tr>
               <th className="">{/* placeholder for button column */}</th>
-              <th className="">Sentence</th>
+              <th className="p-4">Sentences</th>
             </tr>
           </thead>
-          <tbody>
-            {pageState.state === "LOADING" && (
-              <tr>
-                <td colSpan={2}>Loading...</td>
-              </tr>
-            )}
-            {pageState.state === "ERROR" && (
-              <tr>
-                <td colSpan={2}>{pageState.message}</td>
-              </tr>
-            )}
-            {pageState.state === "READY" &&
-              pageState.sentences.map((sentence) => (
-                <tr className="border-t-1 border-green-50 min-w-fit" key={sentence}>
-                  <td className="border-r-2 border-green-50 p-2">
-                    <div className="flex flex-row gap-2">
-                      <AddButton />
-                      <IKnowThisButton />
+          <tbody className="flex-1 overflow-auto min-h-0">
+            {sentences.map((sentence) => (
+              <tr className="border-t-1 border-green-50 min-w-fit" key={sentence.id}>
+                <td className="border-r-2 border-green-50 p-2">
+                  <div className="flex flex-row gap-2">
+                    <AddButton />
+                    <IKnowThisButton />
                     </div>
                   </td>
                   <td className="w-full p-2">
-                    {sentence}
+                    <SentenceListItem sentence={sentence} />
+                    {/* TODO: add virtual scrolling here */}
                   </td>
                 </tr>
               ))}
