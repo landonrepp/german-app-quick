@@ -19,6 +19,7 @@ export default async function Page() {
             <tr>
               <th className="">{/* placeholder for button column */}</th>
               <th className="p-4">Sentences</th>
+              <th className="p-4 text-nowrap">i + x</th>
             </tr>
           </thead>
           {/* TODO: add virtual scrolling here */}
@@ -32,7 +33,12 @@ export default async function Page() {
                     </div>
                   </td>
                   <td className="w-full p-2">
-                    <SentenceListItem sentence={sentence} knownWords={knownWords} />
+                    <SentenceListItem sentence={sentence} />
+                  </td>
+                  <td className="w-4 border-l-2 border-l-white border-collapse">
+                    <div className="flex justify-center items-center h-full">
+                      {sentence.numUnknownWords}
+                    </div>
                   </td>
                 </tr>
               ))}

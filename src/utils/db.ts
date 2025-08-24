@@ -2,10 +2,9 @@
 
 import Database from 'better-sqlite3';
 import fs from 'fs';
-import { cleanToken } from '@/utils/text';
 
 
-const database = new Database('./db.sqlite', { verbose: console.log });
+const database = new Database('./db.sqlite');
 
 export const getDatabase = async () => database;
 
@@ -114,7 +113,6 @@ export const importSentences = async ({
     });
 
     const { documentId, count } = tx();
-    console.log(`inserted ${count} sentences for document ${fileName}`);
 
     return { ok: true, documentId, insertedSentences: count };
   } catch (e: any) {

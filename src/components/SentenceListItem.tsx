@@ -6,32 +6,19 @@ import { useMemo } from "react";
 
 export type SentenceListItemProps = {
   sentence: Sentence;
-  knownWords: Record<string, boolean>;
 };
 
-type WordWithKnownStatus = {
-  word: string;
-  isKnown: boolean;
-};
+
 
 export function SentenceListItem({
   sentence,
-  knownWords,
 }: SentenceListItemProps) {
-  const words = useMemo(() => {
-    const wordStrs = sentence.content.split(" ");
-    console.log(knownWords);
-    return wordStrs.map((word) => ({
-      word,
-      isKnown: knownWords[word] || false,
-    }));
-  }, [sentence.content, knownWords]);
 
   return (
     <div>
-      {words.map((word, index) => {
+      {sentence.words.map((word, index) => {
         return (
-          <WordListItem key={index} word={word.word} isKnown={word.isKnown} />
+          <WordListItem key={word.id} word={word.word} isKnown={word.isKnown} />
         );
       })}
     </div>
