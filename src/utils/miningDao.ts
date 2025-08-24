@@ -23,18 +23,38 @@ type SentenceRec = {
     id: number,
     word: string,
     wordId: number,
-    isKnown: boolean
+    isKnown: number, // from SQL (0/1)
+    unknownCount: number
 }
 
 export const getSentences = async () => {
     const sentences = await database
         .prepare<unknown[], SentenceRec>(`
-            SELECT content, s.id, w.word, w.id as wordId, iif(k.word IS NOT NULL, 1, 0) as isKnown
+            SELECT 
+                s.content, 
+                s.id, 
+                w.word, 
+                w.id AS wordId, 
+                iif(k.word IS NOT NULL, 1, 0) AS isKnown,
+                u.unknownCount
             FROM sentences s 
             INNER JOIN words_in_sentences w 
-            ON s.id = w.sentence_id
+                ON s.id = w.sentence_id
             LEFT JOIN known_words k
-            ON w.word = k.word
+                ON w.word = k.word
+            LEFT JOIN (
+                SELECT 
+                    w2.sentence_id, 
+                    COUNT(*) AS unknownCount
+                FROM words_in_sentences w2
+                LEFT JOIN known_words k2
+                    ON w2.word = k2.word
+                WHERE k2.word IS NULL
+                GROUP BY w2.sentence_id
+            ) u
+                ON u.sentence_id = s.id
+            WHERE unknownCount > 0
+            ORDER BY unknownCount ASC
         `)
         .all();
     
@@ -45,9 +65,8 @@ export const getSentences = async () => {
                 content: sentenceRec.content,
                 id: sentenceRec.id,
                 words: [],
-                numUnknownWords: 0
+                numUnknownWords: sentenceRec.unknownCount ?? 0
             }
-
             sentencesMap[sentenceRec.id] = sentence;
         }
 
@@ -56,14 +75,14 @@ export const getSentences = async () => {
         rec.words.push({
             word: sentenceRec.word,
             id: sentenceRec.wordId,
-            isKnown: sentenceRec.isKnown
+            isKnown: !!sentenceRec.isKnown
         });
         
-        if (!sentenceRec.isKnown) {
-            rec.numUnknownWords += 1;
-        }
     })
-    return Object.values(sentencesMap) as Sentence[];
+    const result = (Object.values(sentencesMap) as Sentence[])
+        .sort((a, b) => a.numUnknownWords - b.numUnknownWords);
+    
+    return result;
 }
 
 export const addKnownWord = async (word: string) => {
