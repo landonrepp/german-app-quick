@@ -2,6 +2,7 @@
 
 import Database from 'better-sqlite3';
 import fs from 'fs';
+import { cleanToken } from '@/utils/text';
 
 
 const database = new Database('./db.sqlite', { verbose: console.log });
@@ -103,11 +104,10 @@ export const importSentences = async ({
 
         const sentenceId = Number(res.lastInsertRowid);
 
-        for(let word of s.split(' ')){
-          word.replace(',', '')
-            .replace('.','')
-            .replace(';',''); //TODO: remove all punctuation here
-          wordInsert.run(sentenceId, word);
+        for (const rawWord of s.split(/\s+/)) {
+          const cleaned = cleanToken(rawWord);
+          if (!cleaned) continue;
+          wordInsert.run(sentenceId, cleaned);
         }
       }
       return { documentId, count };

@@ -38,7 +38,7 @@ export const getSentences = async () => {
         `)
         .all();
     
-    const sentencesMap: any = {}; //TODO: figure out how to represent hasmaps
+    const sentencesMap: any = {}; //TODO: figure out how to represent hashmaps
     sentences.forEach(sentenceRec => {
         if (!sentencesMap[sentenceRec.id]) {
             const sentence: Sentence = {
@@ -57,5 +57,29 @@ export const getSentences = async () => {
             id: sentenceRec.wordId
         });
     })
-    return Object.values(sentencesMap);
+    return Object.values(sentencesMap) as Sentence[];
+}
+
+export const addKnownWord = async (word: string) => {
+    const statement = database.prepare(`
+        INSERT INTO known_words (word) 
+        VALUES (?)
+        ON CONFLICT(word) DO NOTHING
+    `);
+    await statement.run([word]);
+}
+
+export const getKnownWords = async () => {
+    const words = await database
+        .prepare<unknown[], { word: string }>(`
+            SELECT word FROM known_words
+        `)
+        .all();
+    const knownWords =  words.map(row => row.word);
+
+    const knownWordsMap: Record<string, boolean> = {};
+    knownWords.forEach(word => {
+        knownWordsMap[word] = true;
+    });
+    return knownWordsMap;
 }
