@@ -1,6 +1,6 @@
 "use client";
 
-import { addKnownWord, Sentence } from "@/utils/miningDao";
+import { addKnownWord, Sentence, Word } from "@/utils/miningDao";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
@@ -18,16 +18,16 @@ export function SentenceListItem({
     <div>
       {sentence.words.map((word, index) => {
         return (
-          <WordListItem key={word.id} word={word.word} isKnown={word.isKnown} />
+          <WordListItem key={word.id} word={word} ></WordListItem>
         );
       })}
     </div>
   );
 }
 
-function WordListItem({ word, isKnown }: { word: string; isKnown: boolean }) {
+function WordListItem({ word }: { word: Word }) {
   const router = useRouter();
-  const handleClick = async (word: string) => {
+  const handleClick = async (word: Word) => {
     await addKnownWord(word);
     router.refresh();
   };
@@ -35,14 +35,14 @@ function WordListItem({ word, isKnown }: { word: string; isKnown: boolean }) {
     <span
       className={`mr-1 select-none 
         ${
-          !isKnown &&
+          !word.isKnown &&
           "hover:border-white hover:rounded-md hover:border-2 cursor-pointer"
         }  
-        ${isKnown && "text-gray-200 italic"}
+        ${word.isKnown && "text-gray-200 italic"}
         `}
       onClick={() => handleClick(word)}
     >
-      {word}
+      {word.word}
     </span>
   );
 }

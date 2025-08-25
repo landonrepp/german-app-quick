@@ -2,6 +2,7 @@
 
 import Database from 'better-sqlite3';
 import fs from 'fs';
+import { cleanToken } from './text';
 
 
 const database = new Database('./db.sqlite', {verbose: console.log});
@@ -79,7 +80,7 @@ export const importSentences = async ({
     `);
 
     const wordInsert = database.prepare(`
-        INSERT INTO words_in_sentences (sentence_id, word) VALUES (?, ?)
+        INSERT INTO words_in_sentences (sentence_id, word, cleaned_word) VALUES (?, ?, ?)
       `);
 
     const tx = database.transaction(() => {
@@ -106,7 +107,7 @@ export const importSentences = async ({
         for (const rawWord of s.split(/\s+/)) {
           const cleaned = cleanToken(rawWord);
           if (!cleaned) continue;
-          wordInsert.run(sentenceId, cleaned);
+          wordInsert.run(sentenceId, rawWord, cleaned);
         }
       }
       return { documentId, count };

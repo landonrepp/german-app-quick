@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS sentences (
     document_id INTEGER NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_visible BOOLEAN NOT NULL DEFAULT 1,
     FOREIGN KEY (document_id) REFERENCES documents (id) ON DELETE CASCADE
 );
 
@@ -19,6 +20,7 @@ CREATE TABLE IF NOT EXISTS words_in_sentences (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sentence_id INTEGER NOT NULL,
     word TEXT NOT NULL,
+    cleaned_word TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sentence_id) REFERENCES sentences (id) ON DELETE CASCADE
 );

@@ -7,6 +7,7 @@ const database = await getDatabase();
 
 export type Word = {
     word: string,
+    cleanedWord: string,
     id: number,
     isKnown: boolean
 }
@@ -24,7 +25,8 @@ type SentenceRec = {
     word: string,
     wordId: number,
     isKnown: number, // from SQL (0/1)
-    unknownCount: number
+    unknownCount: number,
+    cleanedWord: string
 }
 
 export const getSentences = async () => {
@@ -34,6 +36,7 @@ export const getSentences = async () => {
                 s.content, 
                 s.id, 
                 w.word, 
+                w.cleaned_word as cleanedWord,
                 w.id AS wordId, 
                 iif(k.word IS NOT NULL, 1, 0) AS isKnown,
                 u.unknownCount
@@ -41,14 +44,14 @@ export const getSentences = async () => {
             INNER JOIN words_in_sentences w 
                 ON s.id = w.sentence_id
             LEFT JOIN known_words k
-                ON w.word = k.word
+                ON w.cleaned_word = k.word
             LEFT JOIN (
                 SELECT 
                     w2.sentence_id, 
                     COUNT(*) AS unknownCount
                 FROM words_in_sentences w2
                 LEFT JOIN known_words k2
-                    ON w2.word = k2.word
+                    ON w2.cleaned_word = k2.word
                 WHERE k2.word IS NULL
                 GROUP BY w2.sentence_id
             ) u
@@ -75,7 +78,8 @@ export const getSentences = async () => {
         rec.words.push({
             word: sentenceRec.word,
             id: sentenceRec.wordId,
-            isKnown: !!sentenceRec.isKnown
+            isKnown: !!sentenceRec.isKnown,
+            cleanedWord: sentenceRec.cleanedWord
         });
         
     })
@@ -89,7 +93,7 @@ export const addKnownSentence = async (sentence: Sentence) => {
     const arr = sentence.words
         .values()
         .filter(x => !x.isKnown)
-        .map(x => x.word)
+        .map(x => x.cleanedWord)
         .toArray();
 
     const vals = arr.map(x => "(?)").join(',');
@@ -102,13 +106,13 @@ export const addKnownSentence = async (sentence: Sentence) => {
     await statement.run(arr);
 }
 
-export const addKnownWord = async (word: string) => {
+export const addKnownWord = async (word: Word) => {
     const statement = database.prepare(`
         INSERT INTO known_words (word) 
         VALUES (?)
         ON CONFLICT(word) DO NOTHING
     `);
-    await statement.run([word]);
+    await statement.run([word.cleanedWord]);
 }
 
 export const getKnownWords = async () => {
