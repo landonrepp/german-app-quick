@@ -85,6 +85,23 @@ export const getSentences = async () => {
     return result;
 }
 
+export const addKnownSentence = async (sentence: Sentence) => {
+    const arr = sentence.words
+        .values()
+        .filter(x => !x.isKnown)
+        .map(x => x.word)
+        .toArray();
+
+    const vals = arr.map(x => "(?)").join(',');
+
+    const statement = database.prepare(`
+        INSERT INTO known_words (word) 
+        VALUES ${vals}
+        ON CONFLICT(word) DO NOTHING
+    `);
+    await statement.run(arr);
+}
+
 export const addKnownWord = async (word: string) => {
     const statement = database.prepare(`
         INSERT INTO known_words (word) 

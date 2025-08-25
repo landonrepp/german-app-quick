@@ -4,7 +4,7 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 
 
-const database = new Database('./db.sqlite');
+const database = new Database('./db.sqlite', {verbose: console.log});
 
 export const getDatabase = async () => database;
 
