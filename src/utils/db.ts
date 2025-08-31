@@ -9,7 +9,8 @@ const database = new Database('./db.sqlite', {verbose: console.log});
 
 export const getDatabase = async () => database;
 
-(async () => {
+// Skip auto-migrations in E2E mode to avoid DB file conflicts.
+if (process.env.E2E_MODE !== '1') (async () => {
   try {
     console.log('Initializing migrations table if needed...');
     database.exec(`
@@ -175,4 +176,3 @@ export const importSentences = async ({
     };
   }
 };
-

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { getAnkiCardsAction, updateAnkiBackAction, updateAnkiFrontAction } from "@/utils/ankiActions";
 
 type AnkiCard = {
   id: number;
@@ -10,16 +11,110 @@ type AnkiCard = {
   created_at?: string | null;
 };
 
+function CardRow({ card }: { card: AnkiCard }) {
+  const [front, setFront] = useState(card.front);
+  const [back, setBack] = useState(card.back);
+  const [editingFront, setEditingFront] = useState(false);
+  const [editingBack, setEditingBack] = useState(false);
+  const [savingFront, setSavingFront] = useState(false);
+  const [savingBack, setSavingBack] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Sync from props when not editing
+  useEffect(() => {
+    if (!editingFront) setFront(card.front);
+  }, [card.front, editingFront]);
+  useEffect(() => {
+    if (!editingBack) setBack(card.back);
+  }, [card.back, editingBack]);
+
+  const hasBack = (card.back ?? "").trim().length > 0;
+
+  const saveFront = async () => {
+    if (front === card.front) return;
+    setSavingFront(true);
+    setError(null);
+    try {
+      await updateAnkiFrontAction(card.id, front);
+    } catch (e: any) {
+      setError(e?.message || "Failed to save front");
+    } finally {
+      setSavingFront(false);
+    }
+  };
+
+  const saveBack = async () => {
+    if (back === card.back) return;
+    setSavingBack(true);
+    setError(null);
+    try {
+      await updateAnkiBackAction(card.id, back);
+    } catch (e: any) {
+      setError(e?.message || "Failed to save back");
+    } finally {
+      setSavingBack(false);
+    }
+  };
+
+  return (
+    <tr className="border-t border-gray-300">
+      <td className="p-2 border-r border-gray-300 align-top hidden sm:table-cell">{card.id}</td>
+      <td className="p-2 align-top whitespace-pre-wrap break-words">
+        <textarea
+          className="w-full border border-gray-300 rounded p-2 text-sm"
+          rows={3}
+          value={front}
+          onChange={(e) => setFront(e.target.value)}
+          onFocus={() => setEditingFront(true)}
+          onBlur={() => {
+            setEditingFront(false);
+            void saveFront();
+          }}
+        />
+        <div className="text-xs text-gray-500 h-4">
+          {savingFront ? "Saving…" : ""}
+        </div>
+      </td>
+      <td className="p-2 align-top whitespace-pre-wrap break-words border-l border-gray-300">
+        <textarea
+          className="w-full border border-gray-300 rounded p-2 text-sm"
+          rows={4}
+          value={hasBack ? back : ""}
+          disabled={!hasBack}
+          placeholder={hasBack ? undefined : "Translating…"}
+          onChange={(e) => setBack(e.target.value)}
+          onFocus={() => setEditingBack(true)}
+          onBlur={() => {
+            setEditingBack(false);
+            if (hasBack) void saveBack();
+          }}
+        />
+        <div className="text-xs text-gray-500 h-4">
+          {savingBack ? "Saving…" : (!hasBack ? "Waiting for translation…" : "")}
+        </div>
+        {error && <div className="text-xs text-red-500">{error}</div>}
+      </td>
+      <td className="p-2 border-l border-gray-300 align-top hidden md:table-cell">
+        {(() => {
+          try {
+            return card.unknown_words ? (JSON.parse(card.unknown_words)?.length ?? 0) : 0;
+          } catch {
+            return 0;
+          }
+        })()}
+      </td>
+    </tr>
+  );
+}
+
 export default function AnkiExportTable() {
   const [cards, setCards] = useState<AnkiCard[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchCards = async () => {
     try {
-      const rsp = await fetch("/api/anki-cards", { cache: "no-store" });
-      if (!rsp.ok) throw new Error(`HTTP ${rsp.status}`);
-      const data = await rsp.json();
-      setCards(Array.isArray(data.cards) ? data.cards : []);
+      const list = await getAnkiCardsAction();
+      setCards(Array.isArray(list) ? list : []);
       setError(null);
     } catch (e: any) {
       setError(e?.message || "Failed to load cards");
@@ -50,22 +145,7 @@ export default function AnkiExportTable() {
         </thead>
         <tbody>
           {rows.map((c) => (
-            <tr key={c.id} className="border-t border-gray-300">
-              <td className="p-2 border-r border-gray-300 align-top hidden sm:table-cell">{c.id}</td>
-              <td className="p-2 align-top whitespace-pre-wrap break-words">{c.front}</td>
-              <td className="p-2 align-top whitespace-pre-wrap break-words border-l border-gray-300">
-                {c.back && c.back.trim().length > 0 ? c.back : "..."}
-              </td>
-              <td className="p-2 border-l border-gray-300 align-top hidden md:table-cell">
-                {(() => {
-                  try {
-                    return c.unknown_words ? (JSON.parse(c.unknown_words)?.length ?? 0) : 0;
-                  } catch {
-                    return 0;
-                  }
-                })()}
-              </td>
-            </tr>
+            <CardRow key={c.id} card={c} />
           ))}
           {rows.length === 0 && (
             <tr>
@@ -79,4 +159,3 @@ export default function AnkiExportTable() {
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 "use server";
 
 import { getDatabase } from '@/utils/db';
+import { emitCardUpdated } from '@/utils/events';
 
 
 const database = await getDatabase();
@@ -166,3 +167,24 @@ export const getAnkiCards = async (): Promise<AnkiCard[]> => {
 }
 
 // Unknown word selection removed; using stored JSON on anki_cards.unknown_words only.
+
+export const updateAnkiFront = async (id: number, front: string) => {
+    const stmt = database.prepare(`UPDATE anki_cards SET front = ? WHERE id = ?`);
+    await stmt.run(front, id);
+}
+
+export const updateAnkiBack = async (id: number, back: string) => {
+    const stmt = database.prepare(`UPDATE anki_cards SET back = ? WHERE id = ?`);
+    await stmt.run(back, id);
+    // Notify any server-side listeners (e.g., Suspense cells) that this card updated
+    emitCardUpdated(id);
+}
+
+export const getAnkiCardById = async (id: number): Promise<AnkiCard | null> => {
+    const row = database
+        .prepare<unknown[], AnkiCard>(
+            `SELECT id, front, back, unknown_words, created_at FROM anki_cards WHERE id = ?`
+        )
+        .get(id as any);
+    return (row as any) ?? null;
+}
