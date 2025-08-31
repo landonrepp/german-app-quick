@@ -34,9 +34,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_known_words_word ON known_words (word);
 
 CREATE TABLE IF NOT EXISTS anki_cards (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    word TEXT NOT NULL,
-    sentence TEXT NOT NULL,
-    translation TEXT NOT NULL,
+    unknown_words TEXT NOT NULL,
+    front TEXT NOT NULL,
+    back TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -107,12 +107,16 @@ export const addKnownSentence = async (sentence: Sentence) => {
 }
 
 export const addKnownWord = async (word: Word) => {
+    return addKnownWords([word]);
+}
+
+export const addKnownWords = async (word: Word[]) => {
     const statement = database.prepare(`
         INSERT INTO known_words (word) 
-        VALUES (?)
+        VALUES ${word.map(() => "(?)").join(',')}
         ON CONFLICT(word) DO NOTHING
     `);
-    await statement.run([word.cleanedWord]);
+    await statement.run(word.map(w => w.cleanedWord));
 }
 
 export const getKnownWords = async () => {
@@ -128,4 +132,16 @@ export const getKnownWords = async () => {
         knownWordsMap[word] = true;
     });
     return knownWordsMap;
+}
+
+export const createAnkiCard = async (sentence: Sentence) => {
+    const unknownWords = sentence.words.filter(word => !word.isKnown).map(word => word.cleanedWord);
+    if (unknownWords.length === 0) return;
+
+    const statement = database.prepare(`
+        INSERT INTO anki_cards (unknown_words, front)
+        VALUES (?, ?)
+    `);
+    await statement.run([unknownWords, sentence.content]);
+    
 }
