@@ -22,7 +22,6 @@ export default async function ExportPage() {
                   <td className="p-2 align-top whitespace-pre-wrap break-words">{c.front}</td>
                   <td className="p-2 align-top whitespace-pre-wrap break-words border-l border-gray-300">
                     <Suspense fallback={"..."}>
-                      {/* @ts-expect-error Server Component */}
                       <AnkiBackCell id={c.id} />
                     </Suspense>
                   </td>
