@@ -10,30 +10,40 @@ const database = new Database('./db.sqlite', {verbose: console.log});
 export const getDatabase = async () => database;
 
 (async () => {
+  try {
+    console.log('Initializing migrations table if needed...');
     database.exec(`
-        CREATE TABLE IF NOT EXISTS migrations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    `)
+      CREATE TABLE IF NOT EXISTS migrations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
     // Prepare statements and a transaction to apply a migration atomically
     const selectMigration = database.prepare(`SELECT 1 FROM migrations WHERE name = ?`);
     const insertMigration = database.prepare(`INSERT INTO migrations (name) VALUES (?)`);
     const applyMigration = database.transaction((file: string, sql: string) => {
-        database.exec(sql);
-        insertMigration.run(file);
+      database.exec(sql);
+      insertMigration.run(file);
     });
 
     fs.readdirSync('./migrations').forEach(file => {
+      try {
         const migration = selectMigration.get(file);
         if (migration) return;
 
         const sql = fs.readFileSync(`./migrations/${file}`, 'utf8');
         // Execute the migration and record it in a single transaction
         applyMigration(file, sql);
+        console.log(`Migration applied successfully: ${file}`);
+      } catch (err) {
+        console.error(`Error applying migration ${file}:`, err);
+      }
     });
+  } catch (err) {
+    console.error('Error initializing migrations table or reading migration files:', err);
+  }
 })();
 
 export type ImportSentencesResult =

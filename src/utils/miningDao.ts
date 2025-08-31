@@ -19,6 +19,14 @@ export type Sentence = {
     numUnknownWords: number
 }
 
+export type AnkiCard = {
+    id: number,
+    front: string,
+    back: string,
+    unknown_words?: string | null,
+    created_at?: string | null
+}
+
 type SentenceRec = {
     content: string,
     id: number,
@@ -91,10 +99,10 @@ export const getSentences = async () => {
 
 export const addKnownSentence = async (sentence: Sentence) => {
     const arr = sentence.words
-        .values()
         .filter(x => !x.isKnown)
-        .map(x => x.cleanedWord)
-        .toArray();
+        .map(x => x.cleanedWord);
+
+    if (arr.length === 0) return;
 
     const vals = arr.map(x => "(?)").join(',');
 
@@ -135,13 +143,26 @@ export const getKnownWords = async () => {
 }
 
 export const createAnkiCard = async (sentence: Sentence) => {
-    const unknownWords = sentence.words.filter(word => !word.isKnown).map(word => word.cleanedWord);
-    if (unknownWords.length === 0) return;
+    // Per migrations/0001_init.sql: anki_cards has columns
+    // (id, unknown_words TEXT NOT NULL, front TEXT NOT NULL, back TEXT NOT NULL, created_at)
+    const unknownWords = sentence.words
+        .filter(word => !word.isKnown)
+        .map(word => word.cleanedWord);
 
     const statement = database.prepare(`
-        INSERT INTO anki_cards (unknown_words, front)
-        VALUES (?, ?)
+        INSERT INTO anki_cards (unknown_words, front, back)
+        VALUES (?, ?, ?)
+        ON CONFLICT(front) DO NOTHING
     `);
-    await statement.run([unknownWords, sentence.content]);
-    
+    await statement.run(JSON.stringify(unknownWords), sentence.content, "");
 }
+
+export const getAnkiCards = async (): Promise<AnkiCard[]> => {
+    return database
+        .prepare<unknown[], AnkiCard>(
+            `SELECT id, front, back, unknown_words, created_at FROM anki_cards ORDER BY id DESC`
+        )
+        .all();
+}
+
+// Unknown word selection removed; using stored JSON on anki_cards.unknown_words only.

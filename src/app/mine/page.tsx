@@ -30,7 +30,7 @@ export default async function Page() {
               >
                 <td className="border-r-2 border-green-50 p-2">
                   <div className="flex flex-row gap-2">
-                    <AddButton />
+                    <AddButton sentence={sentence} />
                     <IKnowThisButton sentence={sentence} />
                   </div>
                 </td>

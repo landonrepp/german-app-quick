@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS anki_cards (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_anki_cards_word ON anki_cards (word);
+CREATE INDEX IF NOT EXISTS idx_anki_cards_unknown_words ON anki_cards (unknown_words);
 
 CREATE TABLE IF NOT EXISTS anki_template (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
