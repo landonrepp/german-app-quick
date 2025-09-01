@@ -5,7 +5,9 @@ import fs from 'fs';
 import { cleanToken } from './text';
 
 
-const database = new Database('./db.sqlite', {verbose: console.log});
+const dbPath = process.env.SQLITE_DB_PATH || './db.sqlite';
+const verbose = process.env.SQLITE_VERBOSE === '1' ? console.log : undefined;
+const database = new Database(dbPath, { verbose } as any);
 
 export const getDatabase = async () => database;
 

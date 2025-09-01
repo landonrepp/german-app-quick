@@ -43,5 +43,7 @@ test-results/
 next-env.d.ts
 
 db.sqlite
+.tmp/
+db.*.sqlite
 .dev-pid
 .dev-log.txt

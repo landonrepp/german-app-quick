@@ -1,6 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.PW_BASE_URL || 'http://localhost:3110';
+// Use a dedicated DB file for E2E; allow override via env
+const e2eDbPath = process.env.SQLITE_DB_PATH || './db.e2e.sqlite';
+// Ensure globalSetup sees the same path
+process.env.SQLITE_DB_PATH = e2eDbPath;
 
 export default defineConfig({
   testDir: 'e2e',
@@ -29,6 +33,7 @@ export default defineConfig({
       TRANSLATION_JOB_AUTOSTART: '0',
       NEXT_PUBLIC_E2E: '1',
       E2E_MODE: '1',
+      SQLITE_DB_PATH: e2eDbPath,
     }
   },
   globalSetup: require.resolve('./scripts/playwright.global-setup'),
