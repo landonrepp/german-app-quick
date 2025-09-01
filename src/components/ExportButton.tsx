@@ -10,11 +10,6 @@ function csvEscape(value: string): string {
   return `"${v.replace(/"/g, '""')}"`;
 }
 
-function textToHtmlMinified(input: string): string {
-  if (!input) return "";
-  return String(input).replace(/\r\n|\r|\n/g, '<br/>').trim();
-}
-
 export default function ExportButton() {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,12 +25,12 @@ export default function ExportButton() {
           if (c.unknown_words) words = JSON.parse(c.unknown_words) ?? [];
         } catch {}
         const id = words.join("_");
-        const front = textToHtmlMinified(String(c.front ?? ""));
-        const back = textToHtmlMinified(String(c.back ?? ""));
+        const front = (c.front??"").replace(/\n/g, "\n<br/>");
+        const back = (c.back??"").replace(/\n/g, "\n<br/>");
         return `${csvEscape(String(id))},${csvEscape(front)},${csvEscape(back)}`;
       });
 
-      const csv = rows.join("\n"); // No header as requested
+      const csv = rows.join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
