@@ -15,6 +15,7 @@
     "@protontech/jsmimeparser": "^3.0.2",
     "axios": "^1.11.0",
     "better-sqlite3": "^12.2.0",
+    
     "lang-detection": "file:lang-detection/pkg",
     "next": "15.4.5",
     "react": "19.1.0",
@@ -29,6 +30,7 @@
     "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/react": "^16.3.0",
     "@types/better-sqlite3": "^7.6.13",
+    
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",

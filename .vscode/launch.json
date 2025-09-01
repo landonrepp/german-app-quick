@@ -1,0 +1,82 @@
+{
+  // VS Code Debug configurations for Next.js dev + browser
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Next.js: Dev Server",
+      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "args": ["dev", "--turbopack"],
+      "cwd": "${workspaceFolder}",
+      "runtimeArgs": [],
+      "env": {
+        "PORT": "3000",
+        "NEXT_TELEMETRY_DISABLED": "1"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "autoAttachChildProcesses": true,
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ]
+    },
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Chrome: http://localhost:3000",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "userDataDir": true
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Node Process",
+      "processId": "${command:PickProcess}",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Next.js: Dev Server (3110)",
+      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "args": ["dev", "--turbopack"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PORT": "3110",
+        "NEXT_TELEMETRY_DISABLED": "1"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "autoAttachChildProcesses": true,
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ]
+    },
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Chrome: http://localhost:3110",
+      "url": "http://localhost:3110",
+      "webRoot": "${workspaceFolder}",
+      "userDataDir": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Dev: Next.js + Chrome",
+      "configurations": ["Next.js: Dev Server", "Chrome: http://localhost:3000"]
+    },
+    {
+      "name": "Dev (3110): Next.js + Chrome",
+      "configurations": ["Next.js: Dev Server (3110)", "Chrome: http://localhost:3110"]
+    }
+  ]
+}
+

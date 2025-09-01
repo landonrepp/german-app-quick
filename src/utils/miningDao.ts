@@ -4,7 +4,8 @@ import { getDatabase } from '@/utils/db';
 import { emitCardUpdated } from '@/utils/events';
 
 
-const database = await getDatabase();
+// Avoid caching the DB connection across hot-reloads/server action contexts.
+// Always fetch via getDatabase() within functions.
 
 export type Word = {
     word: string,
@@ -39,7 +40,8 @@ type SentenceRec = {
 }
 
 export const getSentences = async () => {
-    const sentences = await database
+    const db = await getDatabase();
+    const sentences = await db
         .prepare<unknown[], SentenceRec>(`
             SELECT 
                 s.content, 
@@ -107,7 +109,8 @@ export const addKnownSentence = async (sentence: Sentence) => {
 
     const vals = arr.map(x => "(?)").join(',');
 
-    const statement = database.prepare(`
+    const db = await getDatabase();
+    const statement = db.prepare(`
         INSERT INTO known_words (word) 
         VALUES ${vals}
         ON CONFLICT(word) DO NOTHING
@@ -120,7 +123,8 @@ export const addKnownWord = async (word: Word) => {
 }
 
 export const addKnownWords = async (word: Word[]) => {
-    const statement = database.prepare(`
+    const db = await getDatabase();
+    const statement = db.prepare(`
         INSERT INTO known_words (word) 
         VALUES ${word.map(() => "(?)").join(',')}
         ON CONFLICT(word) DO NOTHING
@@ -129,7 +133,8 @@ export const addKnownWords = async (word: Word[]) => {
 }
 
 export const getKnownWords = async () => {
-    const words = await database
+    const db = await getDatabase();
+    const words = await db
         .prepare<unknown[], { word: string }>(`
             SELECT word FROM known_words
         `)
@@ -150,7 +155,8 @@ export const createAnkiCard = async (sentence: Sentence) => {
         .filter(word => !word.isKnown)
         .map(word => word.cleanedWord);
 
-    const statement = database.prepare(`
+    const db = await getDatabase();
+    const statement = db.prepare(`
         INSERT INTO anki_cards (unknown_words, front, back)
         VALUES (?, ?, ?)
         ON CONFLICT(front) DO NOTHING
@@ -159,9 +165,13 @@ export const createAnkiCard = async (sentence: Sentence) => {
 }
 
 export const getAnkiCards = async (): Promise<AnkiCard[]> => {
-    return database
+    const db = await getDatabase();
+    return db
         .prepare<unknown[], AnkiCard>(
-            `SELECT id, front, back, unknown_words, created_at FROM anki_cards ORDER BY id DESC`
+            `SELECT id, front, back, unknown_words, created_at
+             FROM anki_cards
+             WHERE exported_at IS NULL
+             ORDER BY id DESC`
         )
         .all();
 }
@@ -169,22 +179,38 @@ export const getAnkiCards = async (): Promise<AnkiCard[]> => {
 // Unknown word selection removed; using stored JSON on anki_cards.unknown_words only.
 
 export const updateAnkiFront = async (id: number, front: string) => {
-    const stmt = database.prepare(`UPDATE anki_cards SET front = ? WHERE id = ?`);
+    const db = await getDatabase();
+    const stmt = db.prepare(`UPDATE anki_cards SET front = ? WHERE id = ?`);
     await stmt.run(front, id);
 }
 
 export const updateAnkiBack = async (id: number, back: string) => {
-    const stmt = database.prepare(`UPDATE anki_cards SET back = ? WHERE id = ?`);
+    const db = await getDatabase();
+    const stmt = db.prepare(`UPDATE anki_cards SET back = ? WHERE id = ?`);
     await stmt.run(back, id);
     // Notify any server-side listeners (e.g., Suspense cells) that this card updated
     emitCardUpdated(id);
 }
 
 export const getAnkiCardById = async (id: number): Promise<AnkiCard | null> => {
-    const row = database
+    const db = await getDatabase();
+    const row = db
         .prepare<unknown[], AnkiCard>(
             `SELECT id, front, back, unknown_words, created_at FROM anki_cards WHERE id = ?`
         )
         .get(id as any);
     return (row as any) ?? null;
+}
+
+export const markAnkiCardsExported = async (ids: number[]) => {
+    if (!Array.isArray(ids) || ids.length === 0) return;
+    const db = await getDatabase();
+    const placeholders = ids.map(() => '?').join(',');
+    const stmt = db.prepare(`
+        UPDATE anki_cards
+        SET exported_at = CURRENT_TIMESTAMP
+        WHERE id IN (${placeholders})
+          AND exported_at IS NULL
+    `);
+    stmt.run(ids as any);
 }

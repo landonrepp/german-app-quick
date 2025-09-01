@@ -203,7 +203,12 @@ async function getPendingCards(limit = 5): Promise<PendingCard[]> {
   const db = await getDatabase();
   const rows = db
     .prepare<unknown[], PendingCard>(
-      `SELECT id, front, unknown_words FROM anki_cards WHERE back IS NULL OR back = '' ORDER BY id ASC LIMIT ?`
+      `SELECT id, front, unknown_words
+       FROM anki_cards
+       WHERE (back IS NULL OR back = '')
+         AND (exported_at IS NULL)
+       ORDER BY id ASC
+       LIMIT ?`
     )
     .all(limit as any);
   return rows;

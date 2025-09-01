@@ -1,6 +1,6 @@
 "use server";
 
-import { getAnkiCards, updateAnkiBack, updateAnkiFront } from '@/utils/miningDao';
+import { getAnkiCards, markAnkiCardsExported, updateAnkiBack, updateAnkiFront } from '@/utils/miningDao';
 
 export async function getAnkiCardsAction() {
   return await getAnkiCards();
@@ -16,3 +16,7 @@ export async function updateAnkiBackAction(id: number, back: string) {
   return { ok: true } as const;
 }
 
+export async function markAnkiCardsExportedAction(ids: number[]) {
+  await markAnkiCardsExported(ids);
+  return { ok: true } as const;
+}

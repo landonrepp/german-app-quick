@@ -8,7 +8,7 @@ function cleanToken(raw: string): string {
 }
 
 async function seedDb() {
-  const dbPath = path.resolve(process.env.SQLITE_DB_PATH || './db.e2e.sqlite');
+  const dbPath = path.resolve(process.env.SQLITE_DB_PATH || path.resolve('.tmp', 'db.e2e.sqlite'));
   try { if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath); } catch {}
 
   const db = new Database(dbPath);

@@ -1,8 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
 
 const baseURL = process.env.PW_BASE_URL || 'http://localhost:3110';
-// Use a dedicated DB file for E2E; allow override via env
-const e2eDbPath = process.env.SQLITE_DB_PATH || './db.e2e.sqlite';
+// Use a dedicated DB file for E2E; place it outside hot-reload paths to avoid DBMOVED issues
+const e2eDbPath = process.env.SQLITE_DB_PATH || path.resolve(process.cwd(), '.tmp', 'db.e2e.sqlite');
 // Ensure globalSetup sees the same path
 process.env.SQLITE_DB_PATH = e2eDbPath;
 
