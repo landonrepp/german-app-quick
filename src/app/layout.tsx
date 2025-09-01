@@ -2,15 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-// Kick off the background translation poller on server start.
-// The poller has an internal reentrancy guard to prevent duplicate starts.
-import { isTranslationPollerRunning, runTranslationPoller } from "@/utils/jobs/translation-job";
-
-// Fire-and-forget start (server-only). Do not await to avoid blocking renders.
-if (process.env.TRANSLATION_JOB_AUTOSTART === "1" && !isTranslationPollerRunning()) {
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  runTranslationPoller().catch((e) => console.error("Translation poller failed:", e));
-}
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

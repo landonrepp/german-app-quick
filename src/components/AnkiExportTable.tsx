@@ -36,8 +36,9 @@ function CardRow({ card }: { card: AnkiCard }) {
     setError(null);
     try {
       await updateAnkiFrontAction(card.id, front);
-    } catch (e: any) {
-      setError(e?.message || "Failed to save front");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || "Failed to save front");
     } finally {
       setSavingFront(false);
     }
@@ -49,8 +50,9 @@ function CardRow({ card }: { card: AnkiCard }) {
     setError(null);
     try {
       await updateAnkiBackAction(card.id, back);
-    } catch (e: any) {
-      setError(e?.message || "Failed to save back");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || "Failed to save back");
     } finally {
       setSavingBack(false);
     }
@@ -97,7 +99,7 @@ function CardRow({ card }: { card: AnkiCard }) {
       <td className="p-2 border-l border-gray-300 align-top hidden md:table-cell">
         {(() => {
           try {
-            return card.unknown_words ? (JSON.parse(card.unknown_words)?.length ?? 0) : 0;
+            return card.unknown_words ? ((JSON.parse(card.unknown_words) as unknown[])?.length ?? 0) : 0;
           } catch {
             return 0;
           }
@@ -116,8 +118,9 @@ export default function AnkiExportTable() {
       const list = await getAnkiCardsAction();
       setCards(Array.isArray(list) ? list : []);
       setError(null);
-    } catch (e: any) {
-      setError(e?.message || "Failed to load cards");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || "Failed to load cards");
     }
   };
 

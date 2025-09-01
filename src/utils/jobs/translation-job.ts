@@ -83,9 +83,14 @@ async function callOpenAITranslate({
     const start = content.indexOf("{");
     const end = content.lastIndexOf("}");
     const jsonStr = start >= 0 && end >= 0 ? content.slice(start, end + 1) : content;
-    const parsed = JSON.parse(jsonStr);
-    const translation = String(parsed.translation ?? "").trim();
-    const glosses = Array.isArray(parsed.glosses) ? parsed.glosses.map((g: any) => ({ de: String(g.de ?? ""), en: String(g.en ?? "") })) : [];
+    const parsed = JSON.parse(jsonStr) as { translation?: unknown; glosses?: unknown };
+    const translation = String((parsed.translation as unknown) ?? "").trim();
+    const glosses = Array.isArray(parsed.glosses)
+      ? (parsed.glosses as unknown[]).map((g) => {
+          const obj = g as { de?: unknown; en?: unknown };
+          return { de: String(obj.de ?? ""), en: String(obj.en ?? "") };
+        })
+      : [];
     return { translation, glosses };
   } catch (e) {
     console.error("Translation call failed:", e);
@@ -162,15 +167,22 @@ async function callOpenAITranslateBatch(items: BatchItem[]): Promise<BatchResult
     const start = content.indexOf("[");
     const end = content.lastIndexOf("]");
     const jsonStr = start >= 0 && end >= 0 ? content.slice(start, end + 1) : content;
-    const parsed = JSON.parse(jsonStr);
+    const parsed = JSON.parse(jsonStr) as unknown;
     if (!Array.isArray(parsed)) throw new Error("Model did not return an array");
-    return parsed.map((row: any) => ({
-      id: Number(row.id),
-      translation: String(row.translation ?? "").trim(),
-      glosses: Array.isArray(row.glosses)
-        ? row.glosses.map((g: any) => ({ de: String(g.de ?? ""), en: String(g.en ?? "") }))
-        : [],
-    }));
+    return (parsed as unknown[]).map((row) => {
+      const r = row as { id?: unknown; translation?: unknown; glosses?: unknown };
+      const glosses = Array.isArray(r.glosses)
+        ? (r.glosses as unknown[]).map((g) => {
+            const obj = g as { de?: unknown; en?: unknown };
+            return { de: String(obj.de ?? ""), en: String(obj.en ?? "") };
+          })
+        : [];
+      return {
+        id: Number(r.id),
+        translation: String(r.translation ?? "").trim(),
+        glosses,
+      };
+    });
   } catch (e) {
     console.error("Batch translation failed:", e);
     if (devFallback) {
@@ -201,8 +213,8 @@ function formatBackText(result: { translation: string; glosses: { de: string; en
 
 async function getPendingCards(limit = 5): Promise<PendingCard[]> {
   const db = await getDatabase();
-  const rows = db
-    .prepare<unknown[], PendingCard>(
+  const rows = (db
+    .prepare(
       `SELECT id, front, unknown_words
        FROM anki_cards
        WHERE (back IS NULL OR back = '')
@@ -210,7 +222,7 @@ async function getPendingCards(limit = 5): Promise<PendingCard[]> {
        ORDER BY id ASC
        LIMIT ?`
     )
-    .all(limit as any);
+    .all(limit)) as PendingCard[];
   return rows;
 }
 
@@ -281,7 +293,7 @@ function safeParseUnknown(raw: string | null): string[] {
   }
 }
 
-// Optional autostart via env flag to avoid unintended background work in all environments
-if (process.env.TRANSLATION_JOB_AUTOSTART === "1") {
+// Optional autostart via env flag, only in dev/runtime (never during build)
+if (process.env.NODE_ENV !== 'production' && process.env.TRANSLATION_JOB_AUTOSTART === "1") {
   runTranslationPoller().catch((e) => console.error("Translation poller failed:", e));
 }

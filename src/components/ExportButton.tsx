@@ -10,6 +10,13 @@ function csvEscape(value: string): string {
   return `"${v.replace(/"/g, '""')}"`;
 }
 
+type ClientAnkiCard = {
+  id: number;
+  front: string;
+  back: string;
+  unknown_words?: string | null;
+};
+
 export default function ExportButton() {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,14 +26,15 @@ export default function ExportButton() {
     setError(null);
     try {
       const cards = await getAnkiCardsAction();
-      const rows = (Array.isArray(cards) ? cards : []).map((c: any) => {
+      const list: ClientAnkiCard[] = Array.isArray(cards) ? (cards as ClientAnkiCard[]) : [];
+      const rows = list.map((c) => {
         let words: string[] = [];
         try {
           if (c.unknown_words) words = JSON.parse(c.unknown_words) ?? [];
         } catch {}
         const id = words.join("_");
-        const front = (c.front??"").replace(/\n/g, "\n<br/>");
-        const back = (c.back??"").replace(/\n/g, "\n<br/>");
+        const front = String(c.front ?? "").replace(/\r?\n/g, '<br/>').trim();
+        const back = String(c.back ?? "").replace(/\r?\n/g, '<br/>').trim();
         return `${csvEscape(String(id))},${csvEscape(front)},${csvEscape(back)}`;
       });
 
@@ -45,12 +53,13 @@ export default function ExportButton() {
       URL.revokeObjectURL(url);
 
       // Mark exported after generating the CSV
-      const ids = (Array.isArray(cards) ? cards : []).map((c: any) => c.id).filter((x: any) => typeof x === 'number');
+      const ids = list.map((c) => c.id).filter((x) => typeof x === 'number');
       if (ids.length > 0) {
         await markAnkiCardsExportedAction(ids);
       }
-    } catch (e: any) {
-      setError(e?.message || "Failed to export cards");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || "Failed to export cards");
     } finally {
       setExporting(false);
     }

@@ -9,7 +9,10 @@
     "lint": "next lint",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "electron:dev": "concurrently -k -r \"npm:dev\" \"wait-on tcp:3000 && electron .\"",
+    "electron:build": "npm run build && electron-builder --dir",
+    "electron:dist": "npm run build && electron-builder"
   },
   "dependencies": {
     "@protontech/jsmimeparser": "^3.0.2",
@@ -43,6 +46,43 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
     "ts-jest": "^29.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "concurrently": "^9.1.0",
+    "wait-on": "^8.0.1",
+    "electron": "^31.3.0",
+    "electron-builder": "^25.1.8"
+  }
+  ,
+  "main": "electron/main.js",
+  "build": {
+    "appId": "com.example.germanapp",
+    "productName": "German App",
+    "files": [
+      "electron/**",
+      ".next/**",
+      "public/**",
+      "package.json",
+      "node_modules/**",
+      "next.config.ts",
+      "src/**"
+    ],
+    "asarUnpack": [
+      "node_modules/**/build/Release/*.node"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": ["nsis"],
+      "publisherName": "German App"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility"
+    }
   }
 }

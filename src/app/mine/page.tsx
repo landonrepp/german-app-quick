@@ -1,8 +1,10 @@
-"use server";
+// Server Component
 
 import { AddButton, IKnowThisButton } from "@/components/Buttons";
 import { SentenceListItem } from "@/components/SentenceListItem";
 import { getKnownWords, getSentences } from "@/utils/miningDao";
+
+export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   // Simulate a READY state for demonstration

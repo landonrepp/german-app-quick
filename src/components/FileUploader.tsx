@@ -30,11 +30,8 @@ export default function FileUploader() {
 
     let text: string;
     try {
-      text =
-        typeof (file as any).text === "function"
-          ? await (file as any).text()
-          : await new Response(file).text();
-    } catch (e: any) {
+      text = await file.text();
+    } catch (e: unknown) {
       setImportResult({
         result: "ERROR",
         error: "Unable to read the file. Please try again.",
@@ -48,8 +45,8 @@ export default function FileUploader() {
         fileContent: text,
         fileName: file.name,
       });
-    } catch (e: any) {
-      const msg = String(e?.message || "");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e || "");
       let friendly =
         "Failed to analyze the file and detect sentences. Please try again.";
       if (msg.includes("Unsupported file type")) {

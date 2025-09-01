@@ -41,8 +41,8 @@ type SentenceRec = {
 
 export const getSentences = async () => {
     const db = await getDatabase();
-    const sentences = await db
-        .prepare<unknown[], SentenceRec>(`
+    const sentences = await (db
+        .prepare(`
             SELECT 
                 s.content, 
                 s.id, 
@@ -70,9 +70,9 @@ export const getSentences = async () => {
             WHERE unknownCount > 0
             ORDER BY unknownCount ASC
         `)
-        .all();
+        .all()) as SentenceRec[];
     
-    const sentencesMap: any = {}; //TODO: figure out how to represent hashmaps
+    const sentencesMap: Record<number, Sentence> = {};
     sentences.forEach(sentenceRec => {
         if (!sentencesMap[sentenceRec.id]) {
             const sentence: Sentence = {
@@ -134,11 +134,11 @@ export const addKnownWords = async (word: Word[]) => {
 
 export const getKnownWords = async () => {
     const db = await getDatabase();
-    const words = await db
-        .prepare<unknown[], { word: string }>(`
+    const words = await (db
+        .prepare(`
             SELECT word FROM known_words
         `)
-        .all();
+        .all()) as { word: string }[];
     const knownWords =  words.map(row => row.word);
 
     const knownWordsMap: Record<string, boolean> = {};
@@ -166,14 +166,14 @@ export const createAnkiCard = async (sentence: Sentence) => {
 
 export const getAnkiCards = async (): Promise<AnkiCard[]> => {
     const db = await getDatabase();
-    return db
-        .prepare<unknown[], AnkiCard>(
+    return (db
+        .prepare(
             `SELECT id, front, back, unknown_words, created_at
              FROM anki_cards
              WHERE exported_at IS NULL
              ORDER BY id DESC`
         )
-        .all();
+        .all()) as AnkiCard[];
 }
 
 // Unknown word selection removed; using stored JSON on anki_cards.unknown_words only.
@@ -194,12 +194,12 @@ export const updateAnkiBack = async (id: number, back: string) => {
 
 export const getAnkiCardById = async (id: number): Promise<AnkiCard | null> => {
     const db = await getDatabase();
-    const row = db
-        .prepare<unknown[], AnkiCard>(
+    const row = (db
+        .prepare(
             `SELECT id, front, back, unknown_words, created_at FROM anki_cards WHERE id = ?`
         )
-        .get(id as any);
-    return (row as any) ?? null;
+        .get(id)) as AnkiCard | undefined;
+    return row ?? null;
 }
 
 export const markAnkiCardsExported = async (ids: number[]) => {
@@ -212,5 +212,5 @@ export const markAnkiCardsExported = async (ids: number[]) => {
         WHERE id IN (${placeholders})
           AND exported_at IS NULL
     `);
-    stmt.run(ids as any);
+    stmt.run(...ids);
 }
