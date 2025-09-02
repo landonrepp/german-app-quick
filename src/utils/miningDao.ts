@@ -107,7 +107,7 @@ export const addKnownSentence = async (sentence: Sentence) => {
 
     if (arr.length === 0) return;
 
-    const vals = arr.map(x => "(?)").join(',');
+    const vals = arr.map(() => "(?)").join(',');
 
     const db = await getDatabase();
     const statement = db.prepare(`

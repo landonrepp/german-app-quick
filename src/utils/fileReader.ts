@@ -1,4 +1,3 @@
-import { JSDOM } from "jsdom";
 import { detect_languages } from "lang-detection";
 
 

@@ -31,7 +31,7 @@ export default function FileUploader() {
     let text: string;
     try {
       text = await file.text();
-    } catch (e: unknown) {
+    } catch {
       setImportResult({
         result: "ERROR",
         error: "Unable to read the file. Please try again.",

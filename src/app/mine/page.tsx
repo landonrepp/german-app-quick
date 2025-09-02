@@ -2,14 +2,13 @@
 
 import { AddButton, IKnowThisButton } from "@/components/Buttons";
 import { SentenceListItem } from "@/components/SentenceListItem";
-import { getKnownWords, getSentences } from "@/utils/miningDao";
+import { getSentences } from "@/utils/miningDao";
 
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   // Simulate a READY state for demonstration
   const sentences = await getSentences();
-  const knownWords = await getKnownWords();
 
   return (
     <div className="flex flex-row justify-center w-full">

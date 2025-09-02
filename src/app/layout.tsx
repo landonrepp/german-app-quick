@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`bg-gray-900 w-screen h-screen`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} bg-gray-900 w-screen h-screen`}>
         <div className="flex flex-row h-dvh">
           <div className="bg-black py-4">
             <NavItem link="/">

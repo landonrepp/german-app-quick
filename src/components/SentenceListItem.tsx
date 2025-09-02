@@ -2,7 +2,6 @@
 
 import { addKnownWord, Sentence, Word } from "@/utils/miningDao";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
 
 export type SentenceListItemProps = {
   sentence: Sentence;
@@ -16,7 +15,7 @@ export function SentenceListItem({
 
   return (
     <div>
-      {sentence.words.map((word, index) => {
+      {sentence.words.map((word) => {
         return (
           <WordListItem key={word.id} word={word} ></WordListItem>
         );
