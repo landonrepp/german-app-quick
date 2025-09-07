@@ -13,16 +13,19 @@
     "withGlobalTauri": true,
     "windows": [
       {
+        "label": "main",
         "title": "German App",
         "width": 1280,
         "height": 800,
-        "visible": true
+        "visible": true,
+        "url": "about:blank",
+        "devtools": true
       }
     ]
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["app"],
     "resources": [
       "../.next/standalone",
       "../.next/static",

@@ -50,3 +50,6 @@ db.sqlite
 db.*.sqlite
 .dev-pid
 .dev-log.txt
+src-tauri/next/
+.next/
+src-tauri/static/
