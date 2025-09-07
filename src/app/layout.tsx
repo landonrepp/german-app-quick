@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Link from "next/link";
+import CssReadyGate from "@/components/CssReadyGate";
 
 export const metadata: Metadata = {
   title: "German App",
@@ -16,21 +17,23 @@ export default function RootLayout({
     <html lang="en">
       <body className={`bg-gray-900 w-screen h-screen`}>
         <div className="flex flex-row h-dvh">
-          <div className="bg-black py-4">
-            <NavItem link="/">
-              Import Files
-            </NavItem>
-            <NavItem link="/mine">
-              Mine Sentences
-            </NavItem>
-            <NavItem link="/export">
-              Export to Anki
-            </NavItem>
-          </div>
-          <div className="w-full m-2">
+          <CssReadyGate>
+            <div className="bg-black py-4">
+              <NavItem link="/">
+                Import Files
+              </NavItem>
+              <NavItem link="/mine">
+                Mine Sentences
+              </NavItem>
+              <NavItem link="/export">
+                Export to Anki
+              </NavItem>
+            </div>
+            <div className="w-full m-2">
               {children}
             </div>
-          </div>
+          </CssReadyGate>
+        </div>
       </body>
     </html>
   );

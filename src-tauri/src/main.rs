@@ -76,18 +76,19 @@ fn main() {
     .setup(|app| {
       let port: u16 = std::env::var("PORT").ok().and_then(|s| s.parse().ok()).unwrap_or(3333);
 
-      // In dev, rely on devUrl; in prod, spawn Next server
+      // In dev, rely on devUrl; in prod, spawn Next server and point window to it.
       let mut child_opt: Option<Child> = None;
       let handle: AppHandle = app.handle().clone();
-      if server_root(&handle).is_some() {
+      let has_embedded_server = server_root(&handle).is_some();
+      if has_embedded_server {
         child_opt = spawn_next(&handle, port);
         if !wait_for_port(port, 15_000) {
           eprintln!("Next server failed to start on port {}", port);
         }
-      }
 
-      if let Some(win) = app.get_webview_window("main") {
-        let _ = win.eval(&format!("location.replace('http://127.0.0.1:{}')", port));
+        if let Some(win) = app.get_webview_window("main") {
+          let _ = win.eval(&format!("location.replace('http://127.0.0.1:{}')", port));
+        }
       }
 
       // Manage child lifetime (kill on drop/app exit)
