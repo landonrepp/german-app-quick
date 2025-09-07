@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/main/schemas/tauri.schema.json",
+  "productName": "German App",
+  "version": "0.1.0",
+  "identifier": "com.example.germanapp",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:3000",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": null
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "German App",
+        "width": 1280,
+        "height": 800,
+        "visible": true
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "resources": [
+      "../.next/standalone",
+      "../.next/static",
+      "../node_modules/better-sqlite3/**",
+      "../migrations"
+    ]
+  }
+}

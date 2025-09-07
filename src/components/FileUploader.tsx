@@ -108,6 +108,7 @@ export default function FileUploader() {
         onChange={onInputChange}
         type="file"
         id="fileUpload"
+        hidden
         className="hidden"
         accept="text/plain"
         disabled={importResult?.result === "LOADING"}

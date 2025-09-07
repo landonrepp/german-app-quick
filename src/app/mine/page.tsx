@@ -7,7 +7,6 @@ import { getSentences } from "@/utils/miningDao";
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  // Simulate a READY state for demonstration
   const sentences = await getSentences();
 
   return (

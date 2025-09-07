@@ -5,16 +5,14 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "export": "next export",
     "start": "next start",
     "lint": "next lint",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
-    "postinstall": "electron-builder install-app-deps",
-    "rebuild:native": "electron-rebuild -f -w better-sqlite3",
-    "electron:dev": "concurrently -k -r \"npm:dev\" \"wait-on tcp:3000 && ELECTRON_DEV=1 electron .\"",
-    "electron:build": "npm run build && electron-builder --dir",
-    "electron:dist": "npm run build && electron-builder"
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@protontech/jsmimeparser": "^3.0.2",
@@ -28,7 +26,6 @@
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "@electron/rebuild": "^4.0.1",
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4.1.11",
@@ -41,8 +38,6 @@
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.1.0",
-    "electron": "^31.3.0",
-    "electron-builder": "^25.1.8",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "jest": "^29.7.0",
@@ -51,49 +46,8 @@
     "tailwindcss": "^4.1.11",
     "ts-jest": "^29.4.1",
     "typescript": "^5",
-    "wait-on": "^8.0.1"
+    "wait-on": "^8.0.1",
+    "@tauri-apps/cli": "^2.0.0"
   },
-  "main": "electron/main.js",
-  "build": {
-    "appId": "com.example.germanapp",
-    "productName": "German App",
-    "npmRebuild": true,
-    "files": [
-      "electron/**",
-      ".next/**",
-      "migrations/**",
-      "public/**",
-      "package.json",
-      "node_modules/**",
-      "next.config.mjs",
-      "src/**"
-    ],
-    "asarUnpack": [
-      "node_modules/**/build/Release/*.node",
-      "**/*.node",
-      ".next/**"
-    ],
-    "extraMetadata": {
-      "main": "electron/main.js"
-    },
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "category": "public.app-category.productivity"
-    },
-    "win": {
-      "target": [
-        "nsis"
-      ],
-      "publisherName": "German App"
-    },
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Utility"
-    }
-  }
+  "main": "index.js"
 }
