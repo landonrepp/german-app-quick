@@ -41,7 +41,7 @@ export default function FileUploader() {
 
     let sentences: string[];
     try {
-      sentences = getGermanSentences({
+      sentences = await getGermanSentences({
         fileContent: text,
         fileName: file.name,
       });

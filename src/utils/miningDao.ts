@@ -1,6 +1,6 @@
 "use server";
 
-import { getDatabase } from '@/utils/db';
+import { getDatabase, ensureMigrations } from '@/utils/db';
 import { emitCardUpdated } from '@/utils/events';
 
 
@@ -40,6 +40,7 @@ type SentenceRec = {
 }
 
 export const getSentences = async () => {
+    await ensureMigrations();
     const db = await getDatabase();
     const sentences = await (db
         .prepare(`
@@ -101,6 +102,7 @@ export const getSentences = async () => {
 }
 
 export const addKnownSentence = async (sentence: Sentence) => {
+    await ensureMigrations();
     const arr = sentence.words
         .filter(x => !x.isKnown)
         .map(x => x.cleanedWord);
@@ -123,6 +125,7 @@ export const addKnownWord = async (word: Word) => {
 }
 
 export const addKnownWords = async (word: Word[]) => {
+    await ensureMigrations();
     const db = await getDatabase();
     const statement = db.prepare(`
         INSERT INTO known_words (word) 
@@ -133,6 +136,7 @@ export const addKnownWords = async (word: Word[]) => {
 }
 
 export const getKnownWords = async () => {
+    await ensureMigrations();
     const db = await getDatabase();
     const words = await (db
         .prepare(`
@@ -149,6 +153,7 @@ export const getKnownWords = async () => {
 }
 
 export const createAnkiCard = async (sentence: Sentence) => {
+    await ensureMigrations();
     // Per migrations/0001_init.sql: anki_cards has columns
     // (id, unknown_words TEXT NOT NULL, front TEXT NOT NULL, back TEXT NOT NULL, created_at)
     const unknownWords = sentence.words
@@ -193,6 +198,7 @@ export const updateAnkiBack = async (id: number, back: string) => {
 }
 
 export const getAnkiCardById = async (id: number): Promise<AnkiCard | null> => {
+    await ensureMigrations();
     const db = await getDatabase();
     const row = (db
         .prepare(
@@ -204,6 +210,7 @@ export const getAnkiCardById = async (id: number): Promise<AnkiCard | null> => {
 
 export const markAnkiCardsExported = async (ids: number[]) => {
     if (!Array.isArray(ids) || ids.length === 0) return;
+    await ensureMigrations();
     const db = await getDatabase();
     const placeholders = ids.map(() => '?').join(',');
     const stmt = db.prepare(`

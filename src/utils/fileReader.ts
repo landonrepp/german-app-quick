@@ -1,22 +1,25 @@
-import { detect_languages } from "lang-detection";
-
-
 type LanguageResults = "German" | "English" | "Unknown";
 
 const SUPPORTED_FILE_TYPES = ["txt"];
 
-export function getGermanSentences({
+export async function getGermanSentences({
   fileContent: fileBuffer,
   fileName,
 }: {
   fileContent: string;
   fileName: string;
-}): string[] {
+}): Promise<string[]> {
   const sentences = getSentences(fileBuffer, fileName);
   // In E2E mode, skip language detection for stability and return all valid sentences.
   if (process.env.NEXT_PUBLIC_E2E === '1') {
     return sentences;
   }
+  // Only load the WASM detector in the browser at runtime to avoid
+  // bundling it into the Next.js server output.
+  if (typeof window === 'undefined') {
+    return sentences;
+  }
+  const { detect_languages } = await import('lang-detection');
   const languageResults = detect_languages(sentences) as LanguageResults[];
 
   return sentences.filter((_, index) => languageResults[index] === "German");
