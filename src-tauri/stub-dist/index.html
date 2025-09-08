@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>German App Loading</title>
+    <style>
+      body {
+        font-family: system-ui;
+        margin: 2rem;
+        color: #333;
+      }
+      .spinner {
+        width: 48px;
+        height: 48px;
+        border: 6px solid #ddd;
+        border-top-color: #4b7bec;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 2rem auto;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Starting server...</h1>
+    <div class="spinner"></div>
+    <p>
+      If this screen persists more than a few seconds, the internal Next.js
+      server may have failed to start.
+    </p>
+  </body>
+</html>

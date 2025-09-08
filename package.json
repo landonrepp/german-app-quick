@@ -12,13 +12,14 @@
     "test:e2e": "playwright test",
     "electron:dev": "concurrently -k -r \"npm:dev\" \"wait-on tcp:3000 && electron .\"",
     "electron:build": "npm run build && electron-builder --dir",
-    "electron:dist": "npm run build && electron-builder"
+    "electron:dist": "npm run build && electron-builder",
+    "tauri:dev": "concurrently -k -r \"npm:dev\" \"wait-on tcp:3000 && tauri dev\"",
+    "tauri:build": "npm ci && npm run build && tauri build"
   },
   "dependencies": {
     "@protontech/jsmimeparser": "^3.0.2",
     "axios": "^1.11.0",
     "better-sqlite3": "^12.2.0",
-    
     "lang-detection": "file:lang-detection/pkg",
     "next": "15.4.5",
     "react": "19.1.0",
@@ -30,15 +31,18 @@
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4.1.11",
+    "@tauri-apps/cli": "^1.5.11",
     "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/react": "^16.3.0",
     "@types/better-sqlite3": "^7.6.13",
-    
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.1.0",
+    "electron": "^31.3.0",
+    "electron-builder": "^25.1.8",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "jest": "^29.7.0",
@@ -47,12 +51,8 @@
     "tailwindcss": "^4.1.11",
     "ts-jest": "^29.4.1",
     "typescript": "^5",
-    "concurrently": "^9.1.0",
-    "wait-on": "^8.0.1",
-    "electron": "^31.3.0",
-    "electron-builder": "^25.1.8"
-  }
-  ,
+    "wait-on": "^8.0.1"
+  },
   "main": "electron/main.js",
   "build": {
     "appId": "com.example.germanapp",
@@ -73,15 +73,22 @@
       "main": "electron/main.js"
     },
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.productivity"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "publisherName": "German App"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Utility"
     }
   }
