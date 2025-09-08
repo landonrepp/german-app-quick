@@ -4,9 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.example.germanapp",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "bash ../scripts/tauri-dev.sh",
     "devUrl": "http://localhost:3000",
-    "beforeBuildCommand": "npm run build",
     "frontendDist": null
   },
   "app": {
@@ -27,9 +26,8 @@
     "active": true,
     "targets": ["app"],
     "resources": [
-      "../.next/standalone",
-      "../.next/static",
-      "../node_modules/better-sqlite3/**",
+      "../.next",
+      "../node_modules/better-sqlite3",
       "../migrations"
     ]
   }

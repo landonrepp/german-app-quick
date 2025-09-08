@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "build:tauri": "npm run build && node scripts/pack-tauri-resources.cjs",
+    "build:tauri": "npm run build && cargo build --release -p german-app --manifest-path=src-tauri/Cargo.toml",
     "export": "next export",
     "start": "next start",
     "lint": "next lint",
