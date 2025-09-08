@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
     config.module.rules.push({ test: /\.wasm$/, type: "webassembly/async" });
     return config;
   },
+  output: 'standalone',
 };
 
 export default nextConfig;
