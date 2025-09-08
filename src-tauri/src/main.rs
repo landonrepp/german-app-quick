@@ -78,6 +78,19 @@ fn spawn_next_server(app_handle: &tauri::AppHandle, resource_dir: &std::path::Pa
     Ok(child)
 }
 
+fn kill_server(app: &tauri::AppHandle) {
+    if let Some(state) = app.try_state::<ServerState>() {
+        if let Ok(mut guard) = state.0.lock() {
+            if let Some(child) = guard.as_mut() {
+                let _ = child.kill();
+                // Best-effort wait (non-fatal if it errors)
+                let _ = child.wait();
+            }
+            *guard = None;
+        }
+    }
+}
+
 fn main() {
     let devtools_item = CustomMenuItem::new("toggle-devtools", "Toggle DevTools");
     let reload_item = CustomMenuItem::new("reload", "Reload");
@@ -121,16 +134,21 @@ fn main() {
         })
         .on_window_event(|event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event.event() {
-                // Attempt to kill server when window closes
                 let app = event.window().app_handle();
-                if let Some(state) = app.try_state::<ServerState>() {
-                    if let Ok(mut guard) = state.0.lock() {
-                        if let Some(child) = guard.as_mut() { let _ = child.kill(); }
-                    }
-                }
+                kill_server(&app);
             }
         })
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
-        .run(|_app_handle, _event| {});
+        .run(|app_handle, event| {
+            match event {
+                tauri::RunEvent::ExitRequested { .. } => {
+                    kill_server(&app_handle);
+                }
+                tauri::RunEvent::Exit { .. } => {
+                    kill_server(&app_handle);
+                }
+                _ => {}
+            }
+        });
 }
