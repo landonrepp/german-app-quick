@@ -34,14 +34,15 @@ export const getDatabase = async (): Promise<SqliteDatabase> => {
       memory?: boolean;
     }) => SqliteDatabase }).default;
     database = new BetterSqlite3(dbPath, { verbose });
+    await ensureMigrations();
   }
   return database;
 };
 
 let migrationsInitialized = false;
 export const ensureMigrations = async () => {
-  if (migrationsInitialized) return;
-  const db = await getDatabase();
+  const db = database;
+  if (!db) throw new Error('Database not initialized');
   db.exec(`
     CREATE TABLE IF NOT EXISTS migrations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -108,7 +109,6 @@ export const importSentences = async ({
   }
 
   try {
-    await ensureMigrations();
     const db = await getDatabase();
     const documentInsert = db.prepare(`
         INSERT INTO documents (title, content) VALUES (?, ?)
