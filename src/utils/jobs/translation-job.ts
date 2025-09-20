@@ -16,8 +16,8 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 const env = () => ({
   apiKey: process.env.OPENAI_API_KEY,
-  baseUrl: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
-  model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+  baseUrl: process.env.OPENAI_BASE_URL,
+  model: process.env.OPENAI_MODEL,
   pollMs: Number(process.env.TRANSLATION_POLL_MS || 5000),
   batchSize: Number(process.env.TRANSLATION_BATCH_SIZE || 5),
   devFallback: process.env.TRANSLATION_DEV_FALLBACK === "1",

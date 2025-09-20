@@ -34,3 +34,25 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Desktop (Tauri)
+
+Run desktop app in development (spawns Next.js dev server separately and points the Tauri webview at it):
+
+```bash
+npm run tauri:dev
+```
+
+Create a production desktop build (packs Next.js standalone output and launches internal Node server on port 3333):
+
+```bash
+npm run tauri:build
+```
+
+Build process steps:
+- `next build` with `output=standalone` creates `.next/standalone`.
+- `scripts/copy-standalone-assets.mjs` copies static/public assets into the standalone dir.
+- Tauri bundles `.next/standalone` + `public` as resources.
+- On launch, Rust spawns `node .next/standalone/server.js` (PORT=3333) and navigates the window to `http://127.0.0.1:3333`.
+
+If system `node` is absent you may need to ship a sidecar Node binary and adjust `spawn_next_server` accordingly.

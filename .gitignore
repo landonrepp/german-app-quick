@@ -47,3 +47,7 @@ db.sqlite
 db.*.sqlite
 .dev-pid
 .dev-log.txt
+
+src-tauri/next-standalone/
+src-tauri/target/
+dist-tauri-stub/

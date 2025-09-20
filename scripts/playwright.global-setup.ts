@@ -13,11 +13,14 @@ async function seedDb() {
 
   const db = new Database(dbPath);
   // Apply migrations in order
-  const files = fs.readdirSync('./migrations').sort();
+  const migrationsDir = process.env.MIGRATIONS_DIR
+    ? path.resolve(process.env.MIGRATIONS_DIR)
+    : path.resolve(process.cwd(), 'migrations');
+  const files = fs.readdirSync(migrationsDir).sort();
   db.exec('BEGIN');
   try {
     for (const file of files) {
-      const sql = fs.readFileSync(path.join('./migrations', file), 'utf8');
+      const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
       db.exec(sql);
     }
     db.exec('COMMIT');
