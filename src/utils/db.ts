@@ -1,10 +1,13 @@
-'use server';
+"use server";
 
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 // Minimal runtime-safe typing for better-sqlite3 we use
 type SqliteStatement = {
-  run: (...params: unknown[]) => { changes: number; lastInsertRowid: number | bigint };
+  run: (...params: unknown[]) => {
+    changes: number;
+    lastInsertRowid: number | bigint;
+  };
   get: (...params: unknown[]) => unknown;
   all: (...params: unknown[]) => unknown[];
 };
@@ -14,25 +17,37 @@ type SqliteDatabase = {
   transaction: <T extends (...args: unknown[]) => unknown>(fn: T) => T;
   close: () => void;
 };
-import { cleanToken } from './text';
+import { cleanToken } from "./text";
 
+// Resolve migrations directory once (works in production bundle where CWD differs)
+const migrationsDir = process.env.MIGRATIONS_DIR
+  ? path.resolve(process.env.MIGRATIONS_DIR)
+  : path.resolve(process.cwd(), "migrations");
 
-const dbPath = path.resolve(process.env.SQLITE_DB_PATH || './db.sqlite');
-const verbose: ((message?: unknown, ...optionalParams: unknown[]) => void) | undefined =
-  process.env.SQLITE_VERBOSE === '1' ? console.log : undefined;
+const dbPath = path.resolve(process.env.SQLITE_DB_PATH || "./db.sqlite");
+const verbose:
+  | ((message?: unknown, ...optionalParams: unknown[]) => void)
+  | undefined = process.env.SQLITE_VERBOSE === "1" ? console.log : undefined;
 let database: SqliteDatabase | null = null;
 
 export const getDatabase = async (): Promise<SqliteDatabase> => {
   if (!database) {
     // Lazy-load native module with dynamic import to avoid build-time dlopen
-    const mod = await import('better-sqlite3');
-    const BetterSqlite3 = (mod as unknown as { default: new (filename: string, options?: {
-      readonly?: boolean;
-      fileMustExist?: boolean;
-      timeout?: number;
-      verbose?: (...args: unknown[]) => void;
-      memory?: boolean;
-    }) => SqliteDatabase }).default;
+    const mod = await import("better-sqlite3");
+    const BetterSqlite3 = (
+      mod as unknown as {
+        default: new (
+          filename: string,
+          options?: {
+            readonly?: boolean;
+            fileMustExist?: boolean;
+            timeout?: number;
+            verbose?: (...args: unknown[]) => void;
+            memory?: boolean;
+          }
+        ) => SqliteDatabase;
+      }
+    ).default;
     database = new BetterSqlite3(dbPath, { verbose });
     await ensureMigrations();
   }
@@ -42,7 +57,7 @@ export const getDatabase = async (): Promise<SqliteDatabase> => {
 let migrationsInitialized = false;
 export const ensureMigrations = async () => {
   const db = database;
-  if (!db) throw new Error('Database not initialized');
+  if (!db) throw new Error("Database not initialized");
   db.exec(`
     CREATE TABLE IF NOT EXISTS migrations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,18 +67,28 @@ export const ensureMigrations = async () => {
   `);
 
   const selectMigration = db.prepare(`SELECT 1 FROM migrations WHERE name = ?`);
-  const insertMigration = db.prepare(`INSERT INTO migrations (name) VALUES (?)`);
+  const insertMigration = db.prepare(
+    `INSERT INTO migrations (name) VALUES (?)`
+  );
   const applyMigration = db.transaction((...args: unknown[]) => {
     const [file, sql] = args as [string, string];
     db.exec(sql);
     insertMigration.run(file);
   });
 
-  for (const file of fs.readdirSync('./migrations')) {
+  let migrationFiles: string[] = [];
+  try {
+    migrationFiles = fs.readdirSync(migrationsDir);
+  } catch (e) {
+    console.error("Failed to read migrations directory", migrationsDir, e);
+    return; // Do not throw to avoid crashing the app; DB just stays un-migrated.
+  }
+  for (const file of migrationFiles) {
     try {
       const migration = selectMigration.get(file);
       if (migration) continue;
-      const sql = fs.readFileSync(`./migrations/${file}`, 'utf8');
+      const sqlPath = path.join(migrationsDir, file);
+      const sql = fs.readFileSync(sqlPath, "utf8");
       applyMigration(file, sql);
       console.log(`Migration applied successfully: ${file}`);
     } catch (err) {
@@ -82,11 +107,11 @@ export type ImportSentencesResult =
   | {
       ok: false;
       code:
-        | 'NO_SENTENCES'
-        | 'DOCUMENT_ALREADY_EXISTS'
-        | 'DOCUMENT_INSERT_FAILED'
-        | 'SENTENCE_INSERT_FAILED'
-        | 'DB_ERROR';
+        | "NO_SENTENCES"
+        | "DOCUMENT_ALREADY_EXISTS"
+        | "DOCUMENT_INSERT_FAILED"
+        | "SENTENCE_INSERT_FAILED"
+        | "DB_ERROR";
       message: string;
       details?: string;
     };
@@ -103,8 +128,8 @@ export const importSentences = async ({
   if (!Array.isArray(sentences) || sentences.length === 0) {
     return {
       ok: false,
-      code: 'NO_SENTENCES',
-      message: 'No German sentences were detected in the file.',
+      code: "NO_SENTENCES",
+      message: "No German sentences were detected in the file.",
     };
   }
 
@@ -124,8 +149,8 @@ export const importSentences = async ({
     const tx = db.transaction(() => {
       const docRes = documentInsert.run(fileName, content);
       if (!docRes) {
-        throw Object.assign(new Error('Document insert returned no result'), {
-          _reason: 'DOCUMENT_INSERT_FAILED',
+        throw Object.assign(new Error("Document insert returned no result"), {
+          _reason: "DOCUMENT_INSERT_FAILED",
         });
       }
       const documentId = Number(docRes.lastInsertRowid);
@@ -134,8 +159,8 @@ export const importSentences = async ({
       for (const s of sentences) {
         const res = sentenceInsert.run(documentId, s);
         if (!res) {
-          throw Object.assign(new Error('Sentence insert returned no result'), {
-            _reason: 'SENTENCE_INSERT_FAILED',
+          throw Object.assign(new Error("Sentence insert returned no result"), {
+            _reason: "SENTENCE_INSERT_FAILED",
           });
         }
         count += 1;
@@ -164,42 +189,43 @@ export const importSentences = async ({
 
     // Broaden detection for UNIQUE constraint on documents.title
     const isUniqueTitleViolation =
-      (code?.startsWith('SQLITE_CONSTRAINT') ?? false) &&
-      (msg?.includes('UNIQUE constraint failed: documents.title') ||
-        msg?.includes('documents.title'));
+      (code?.startsWith("SQLITE_CONSTRAINT") ?? false) &&
+      (msg?.includes("UNIQUE constraint failed: documents.title") ||
+        msg?.includes("documents.title"));
 
     if (isUniqueTitleViolation) {
       return {
         ok: false,
-        code: 'DOCUMENT_ALREADY_EXISTS',
+        code: "DOCUMENT_ALREADY_EXISTS",
         message:
-          'A document with this file name already exists. Rename the file and try again.',
+          "A document with this file name already exists. Rename the file and try again.",
         details: msg,
       };
     }
 
-    if (reason === 'DOCUMENT_INSERT_FAILED') {
+    if (reason === "DOCUMENT_INSERT_FAILED") {
       return {
         ok: false,
-        code: 'DOCUMENT_INSERT_FAILED',
-        message: 'Failed to create a document record in the database.',
+        code: "DOCUMENT_INSERT_FAILED",
+        message: "Failed to create a document record in the database.",
         details: msg,
       };
     }
 
-    if (reason === 'SENTENCE_INSERT_FAILED') {
+    if (reason === "SENTENCE_INSERT_FAILED") {
       return {
         ok: false,
-        code: 'SENTENCE_INSERT_FAILED',
-        message: 'Failed to insert one or more sentences into the database.',
+        code: "SENTENCE_INSERT_FAILED",
+        message: "Failed to insert one or more sentences into the database.",
         details: msg,
       };
     }
 
     return {
       ok: false,
-      code: 'DB_ERROR',
-      message: 'An unexpected database error occurred while importing sentences.',
+      code: "DB_ERROR",
+      message:
+        "An unexpected database error occurred while importing sentences.",
       details: msg,
     };
   }
