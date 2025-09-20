@@ -10,6 +10,7 @@
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
+    "tauri": "tauri",
     "electron:dev": "concurrently -k -r \"npm:dev\" \"wait-on tcp:3000 && electron .\"",
     "electron:build": "npm run build && electron-builder --dir",
     "electron:dist": "npm run build && electron-builder",

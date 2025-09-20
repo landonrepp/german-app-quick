@@ -50,7 +50,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '23'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install app dependencies
@@ -67,7 +67,7 @@ jobs:
           CI: true
         with:
           projectPath: .
-          tauriScript: npm run tauri:build
+          tauriScript: npm run tauri
           # Attach to the current release when triggered by a published release
           releaseId: ${{ github.event.release.id }}
           # For manual runs without a release, create/update a draft release using the current ref
