@@ -46,8 +46,6 @@ jobs:
       - name: Build Rust WASM (lang-detection)
         run: |
           wasm-pack build lang-detection --release --target bundler --out-dir pkg
-        env:
-          RUSTFLAGS: '--cfg getrandom_backend="wasm_js"'
 
       - name: Setup Node
         uses: actions/setup-node@v4
