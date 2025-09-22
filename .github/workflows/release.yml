@@ -75,7 +75,7 @@ jobs:
           CI: true
         with:
           projectPath: .
-          tauriScript: npm run tauri:build
+          tauriScript: npm run
           args: ${{ matrix.args }}
           # Attach to the current release when triggered by a published release
           releaseId: ${{ github.event.release.id }}
