@@ -68,6 +68,7 @@ jobs:
         with:
           projectPath: .
           tauriScript: npm run tauri:build
+          args: ""
           # Attach to the current release when triggered by a published release
           releaseId: ${{ github.event.release.id }}
           # For manual runs without a release, create/update a draft release using the current ref
