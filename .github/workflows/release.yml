@@ -15,12 +15,10 @@ jobs:
         include:
           - os: "macos-latest" # for Arm based macs (M1 and above).
             args: "--target aarch64-apple-darwin"
-          - os: "macos-latest" # for Intel based macs.
-            args: "--target x86_64-apple-darwin"
-          - os: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
-            args: ""
-          - os: "windows-latest"
-            args: ""
+          # - os: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
+          #   args: ""
+          # - os: "windows-latest"
+          #   args: ""
 
     steps:
       - name: Checkout
@@ -65,7 +63,7 @@ jobs:
         run: npm ci
 
       - name: Build Next.js (standalone)
-        run: npm run build
+        run: npm run next:build
 
       # Build and upload release assets using the official Tauri action
       - name: Tauri build and upload

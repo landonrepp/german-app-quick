@@ -46,7 +46,7 @@ npm run tauri:dev
 Create a production desktop build (packs Next.js standalone output and launches internal Node server on port 3333):
 
 ```bash
-npm run tauri:build
+npm run build
 ```
 
 Build process steps:
