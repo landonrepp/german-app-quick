@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build && node scripts/copy-standalone-assets.mjs",
+    "next:build": "next build && node scripts/copy-standalone-assets.mjs",
     "start": "next start",
     "lint": "next lint",
     "test": "jest --passWithNoTests",
@@ -15,7 +15,7 @@
     "electron:build": "npm run build && electron-builder --dir",
     "electron:dist": "npm run build && electron-builder",
     "tauri:dev": "concurrently -k -r \"npm:dev\" \"wait-on tcp:3000 && tauri dev\"",
-    "tauri:build": "npm ci && npm run build && tauri build"
+    "build": "npm ci && npm run build && tauri build"
   },
   "dependencies": {
     "@protontech/jsmimeparser": "^3.0.2",

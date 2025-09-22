@@ -12,7 +12,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: "macos-latest" # for Arm based macs (M1 and above).
+            args: "--target aarch64-apple-darwin"
+          - os: "macos-latest" # for Intel based macs.
+            args: "--target x86_64-apple-darwin"
+          - os: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
+            args: ""
+          - os: "windows-latest"
+            args: ""
 
     steps:
       - name: Checkout
@@ -27,7 +35,7 @@ jobs:
       - name: Install wasm-pack
         uses: jetli/wasm-pack-action@v0.3.0
         with:
-          version: 'latest'
+          version: "latest"
 
       - name: Install Linux dependencies
         if: matrix.os == 'ubuntu-latest'
@@ -50,8 +58,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install app dependencies
         run: npm ci
@@ -68,7 +76,7 @@ jobs:
         with:
           projectPath: .
           tauriScript: npm run tauri:build
-          args: ""
+          args: ${{ matrix.args }}
           # Attach to the current release when triggered by a published release
           releaseId: ${{ github.event.release.id }}
           # For manual runs without a release, create/update a draft release using the current ref
