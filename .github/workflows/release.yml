@@ -18,10 +18,10 @@ jobs:
         include:
           - os: "macos-latest" # for Arm based macs (M1 and above).
             args: "--target aarch64-apple-darwin"
-          # - os: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
-          #   args: ""
-          # - os: "windows-latest"
-          #   args: ""
+          - os: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
+            args: ""
+          - os: "windows-latest"
+            args: ""
 
     steps:
       - name: Checkout
@@ -68,6 +68,21 @@ jobs:
       - name: Build Next.js (standalone)
         run: npm run next:build
 
+      - name: Compute semantic tag from package.json
+        id: semver
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ -z "$VERSION" ]]; then
+            echo "Version not found in package.json" >&2
+            exit 1
+          fi
+          if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "package.json version '$VERSION' is not valid SemVer" >&2
+            exit 1
+          fi
+          echo "TAG_NAME=v$VERSION" >> "$GITHUB_ENV"
+          echo "tag_name=v$VERSION" >> "$GITHUB_OUTPUT"
+
       # Build and upload release assets using the official Tauri action
       - name: Tauri build and upload
         uses: tauri-apps/tauri-action@v0
@@ -80,8 +95,8 @@ jobs:
           args: ${{ matrix.args }}
           # Attach to the current release when triggered by a published release
           releaseId: ${{ github.event.release.id }}
-          # For manual runs without a release, create/update a draft release using the current ref
-          tagName: ${{ github.ref_name }}
-          releaseName: German App ${{ github.ref_name }}
+          # For manual runs without a release, create/update a draft release using semver from package.json
+          tagName: ${{ steps.semver.outputs.tag_name }}
+          releaseName: German App ${{ steps.semver.outputs.tag_name }}
           releaseDraft: false
           prerelease: false
