@@ -15,7 +15,7 @@
     "electron:build": "npm run build && electron-builder --dir",
     "electron:dist": "npm run build && electron-builder",
     "tauri:dev": "concurrently -k -r \"npm:dev\" \"wait-on tcp:3000 && tauri dev\"",
-    "build": "npm ci && npm run build && tauri build"
+    "build": "npm ci && npm run next:build && tauri build"
   },
   "dependencies": {
     "@protontech/jsmimeparser": "^3.0.2",
